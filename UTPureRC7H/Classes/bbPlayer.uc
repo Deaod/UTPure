@@ -542,7 +542,7 @@ event PlayerInput( float DeltaTime )
 	aMouseX *= MouseScale;
 	aMouseY *= MouseScale;
 
-//************************************************************************
+    //************************************************************************
 
 	AbsSmoothX = SmoothMouseX;
 	AbsSmoothY = SmoothMouseY;
@@ -693,137 +693,6 @@ function ServerMove
 	{
 		xxServerCheater("SM");
 	}
-}
-
-// ClientAdjustPosition - pass newloc and newvel in components so they don't get rounded
-
-function ClientAdjustPosition
-(
-	float TimeStamp,
-	name newState,
-	EPhysics newPhysics,
-	float NewLocX,
-	float NewLocY,
-	float NewLocZ,
-	float NewVelX,
-	float NewVelY,
-	float NewVelZ,
-	Actor NewBase
-)
-{
-}
-
-// OLD STYLE (3xfloat) CAP
-
-function xxCAP(float TimeStamp, name newState, EPhysics newPhysics,
-			float NewLocX, float NewLocY, float NewLocZ, float NewVelX, float NewVelY, float NewVelZ, Actor NewBase)
-{
-	local vector Loc,Vel;
-	Loc.X = NewLocX; Loc.Y = NewLocY; Loc.Z = NewLocZ;
-	Vel.X = NewVelX; Vel.Y = NewVelY; Vel.Z = NewVelZ;
-	xxPureCAP(TimeStamp, newState, newPhysics,Loc,Vel,NewBase);
-}
-
-function xxCAPLevelBase(float TimeStamp, name newState, EPhysics newPhysics,
-			float NewLocX, float NewLocY, float NewLocZ, float NewVelX, float NewVelY, float NewVelZ)
-{
-	local vector Loc,Vel;
-	Loc.X = NewLocX; Loc.Y = NewLocY; Loc.Z = NewLocZ;
-	Vel.X = NewVelX; Vel.Y = NewVelY; Vel.Z = NewVelZ;
-	xxPureCAP(TimeStamp,newState,newPhysics,Loc,Vel,Level);
-}
-
-function xxCAPWalking(float TimeStamp, EPhysics newPhysics,
-			float NewLocX, float NewLocY, float NewLocZ, float NewVelX, float NewVelY, float NewVelZ, Actor NewBase)
-{
-	local vector Loc,Vel;
-	Loc.X = NewLocX; Loc.Y = NewLocY; Loc.Z = NewLocZ;
-	Vel.X = NewVelX; Vel.Y = NewVelY; Vel.Z = NewVelZ;
-	xxPureCAP(TimeStamp,'PlayerWalking',newPhysics,Loc,Vel,NewBase);
-}
-
-function xxCAPWalkingWalkingLevelBase(float TimeStamp,
-			float NewLocX, float NewLocY, float NewLocZ, float NewVelX, float NewVelY, float NewVelZ)
-{
-	local vector Loc,Vel;
-	Loc.X = NewLocX; Loc.Y = NewLocY; Loc.Z = NewLocZ;
-	Vel.X = NewVelX; Vel.Y = NewVelY; Vel.Z = NewVelZ;
-	xxPureCAP(TimeStamp,'PlayerWalking',PHYS_Walking,Loc,Vel,Level);
-}
-
-function xxCAPWalkingWalking(float TimeStamp,
-			float NewLocX, float NewLocY, float NewLocZ, float NewVelX, float NewVelY, float NewVelZ, Actor NewBase)
-{
-	local vector Loc,Vel;
-	Loc.X = NewLocX; Loc.Y = NewLocY; Loc.Z = NewLocZ;
-	Vel.X = NewVelX; Vel.Y = NewVelY; Vel.Z = NewVelZ;
-	xxPureCAP(TimeStamp,'PlayerWalking',PHYS_Walking,Loc,Vel,NewBase);
-}
-
-// NEW STYLE (vector based) CAP
-
-function xxPureCAP(float TimeStamp, name newState, EPhysics newPhysics, vector NewLoc, vector NewVel, Actor NewBase)
-{
-	local Decoration Carried;
-	local vector OldLoc;
-
-	if ( CurrentTimeStamp > TimeStamp )
-		return;
-	CurrentTimeStamp = TimeStamp;
-
-	zzPingAdjust = Level.TimeSeconds - CurrentTimeStamp;
-
-	Velocity = NewVel;
-
-	SetBase(NewBase);
-	if ( Mover(NewBase) != None )
-		NewLoc += NewBase.Location;
-
-	//log("Client "$Role$" adjust "$self$" stamp "$TimeStamp$" location "$Location);
-	Carried = CarriedDecoration;
-	OldLoc = Location;
-
-	bCanTeleport = false;
-	SetLocation(NewLoc);
-	bCanTeleport = true;
-
-	if ( Carried != None )
-	{
-		CarriedDecoration = Carried;
-		CarriedDecoration.SetLocation(NewLoc + CarriedDecoration.Location - OldLoc);
-		CarriedDecoration.SetPhysics(PHYS_None);
-		CarriedDecoration.SetBase(self);
-	}
-	SetPhysics(newPhysics);
-
-	if ( !IsInState(newState) )
-		GotoState(newState);
-
-	bUpdatePosition = true;
-}
-
-function xxPureCAPLevelBase(float TimeStamp, name newState, EPhysics newPhysics, vector NewLoc, vector NewVel)
-{
-	xxPureCAP(TimeStamp,newState,newPhysics,NewLoc,NewVel,Level);
-//	Log("CAPLevelBase");
-}
-
-function xxPureCAPWalking(float TimeStamp, EPhysics newPhysics, vector NewLoc, vector NewVel, Actor NewBase)
-{
-	xxPureCAP(TimeStamp,'PlayerWalking',newPhysics,NewLoc,NewVel,NewBase);
-//	Log("CAPWalking");
-}
-
-function xxPureCAPWalkingWalkingLevelBase(float TimeStamp, vector NewLoc, vector NewVel)
-{
-	xxPureCAP(TimeStamp,'PlayerWalking',PHYS_Walking,NewLoc,NewVel,Level);
-//	Log("CAPWalkingWalkingLevelBase");
-}
-
-function xxPureCAPWalkingWalking(float TimeStamp, vector NewLoc, vector NewVel, Actor NewBase)
-{
-	xxPureCAP(TimeStamp,'PlayerWalking',PHYS_Walking,NewLoc,NewVel,NewBase);
-//	Log("CAPWalkingWalking");
 }
 
 function ClientUpdatePosition()
