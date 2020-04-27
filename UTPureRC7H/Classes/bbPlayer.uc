@@ -66,7 +66,6 @@ var float	zzWaitTime;		// Used for diverse waiting.
 var bool	zzbWeaponTracer;	// True if current weapon is a tracer!
 var int		zzForceSettingsLevel;	// The Anti-Default/Ini check force.
 var byte	zzHitSounds;		// 0 = Totally disabled. 1 = Enabled. 2 = Teamhitsounds.
-//var bool	zzbForceModels;		// Allow/Enable/Force Models for clients.
 var byte	zzHUDInfo;		// 0 = Off, 1 = boots/timer, 2 = Team Info too.
 var bool	zzbForceDemo;		// Set true by server to force client to do demo.
 var bool	zzbGameStarted;		// Set to true when Pawn spawns first time (ModifyPlayer)
@@ -98,8 +97,6 @@ var int		zzOldForceSettingsLevel;// Kept to see if things change.
 var bool	bFWS;			// Enable FWS for all weapons.
 var float	zzPingAdjust;		// Ping Adjustment.
 var PlayerReplicationInfo zzStoredPRI[32];	// Original PRI's
-//var Object	zzOuterSave;		// Saved Outer
-//var PlayerReplicationInfo zzFlagPRI[4];		// Fake PRI's for Flagcarriers
 var string	zzComputerName;		// Clients Computername.
 
 // HUD stuff
@@ -187,16 +184,7 @@ var PureStatMutator zzStatMut;	// The mutator that receives special calls
 
 var PureLevelBase PureLevel;	// And Level.
 var PurePlayer PurePlayer;	// And player.
-//var PurexxLinker PureLinker;
 
-/*
-var byte RecentPings[100];	// 100 most recent ping results (In pixels, not actual ping)
-var byte RecentPLs[100];	// 100 most recent PL results (In pixels, not actual pl)
-var byte RecentPPIndex;		// Where the Most recent data was entered.
-var float RecentPPLastTime;	// Last time we checked ping/pl
-var int RecentPing, RecentPL, RecentCount;	// Use this to average reads.
-var bool bRecentShow;		// Show the recent pings/pl.
-*/
 replication
 {
 	//	Client->Demo
@@ -212,7 +200,7 @@ replication
 	// Server->Client
 	reliable if ( bNetOwner && ROLE == ROLE_Authority )
 		zzHUDType, zzSBType, zzSIType, xxClientAcceptMutator, zzbWeaponTracer, zzForceSettingsLevel,
-		/*zzbForceModels,*/ zzHitSounds, zzHUDInfo, zzbForceDemo, zzbGameStarted,
+		zzHitSounds, zzHUDInfo, zzbForceDemo, zzbGameStarted,
 		zzPlayerReplicationInfo, zzGameReplicationInfo;
 
 	//Server->Client function reliable.. no demo propogate! .. bNetOwner? ...
@@ -240,9 +228,9 @@ replication
 
 	// Client->Server
 	reliable if ( ROLE < ROLE_Authority)
-		xxServerCheckMutator,xxServerTestMD5,xxServerSetNetCode,xxSet,//,xxCmd;
+		xxServerCheckMutator,xxServerTestMD5,xxServerSetNetCode,xxSet,
 		xxServerReceiveMenuItems,xxServerSetNoRevert,xxServerSetReadyToPlay,Hold,Go,
-		/*xxServerSetForceModels,*/ xxServerSetHitSounds, xxServerSetTeamInfo, ShowStats,
+		xxServerSetHitSounds, xxServerSetTeamInfo, ShowStats,
 		xxServerAckScreenshot, xxServerReceiveConsole, xxServerReceiveKeys, xxServerReceiveINT,
 		xxServerDemoReply;
 }
