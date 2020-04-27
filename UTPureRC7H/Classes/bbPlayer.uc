@@ -529,19 +529,9 @@ event Possess()
 	if ( Level.Netmode == NM_Client )
 	{	// Only do this for clients.
 		zzTrue = !zzFalse;
-/*		for (zzx = 0; zzx < 4; zzx++)
-		{
-			zzFlagPRI[zzx] = Spawn(Class'PlayerReplicationInfo', Self);
-			zzFlagPRI[zzx].TeamID = 0;
-			zzFlagPRI[zzx].bIsSpectator = True;
-			zzFlagPRI[zzx].Disable('Timer');
-		}*/
-//		cPureInfo = class<PureInfo>(DynamicLoadObject("UTPureN7F.PureInfoN", Class'class'));
-//		zzInfoThing = Spawn(cPureInfo);
 		zzInfoThing = Spawn(Class'PureInfo');
 		xxServerSetNetCode(bNewNetCode);
 		xxServerSetNoRevert(bNoRevert);
-//		xxServerSetForceModels(bForceModels);
 		xxServerSetHitSounds(bHitSounds);
 		xxServerSetTeamInfo(bTeamInfo);
 		if (class'UTPlayerClientWindow'.default.PlayerSetupClass != class'UTPureSetupScrollClient')
@@ -575,40 +565,6 @@ event Possess()
 		}
 		SetPropertyText("PureLevel", GetPropertyText("xLevel"));
 		SetPropertyText("PurePlayer", GetPropertyText("Player"));
-/*
-		for (zzx = 0; zzx < 10; zzx++)
-		{
-			if (zzInfoThing.ReadArray(PureLevel, "zzNetDriver", zzInfoThing, "InfoTest", zzx))
-				Log(zzx@zzInfoThing.InfoTest);
-			else
-				Log(zzx@"FAIL!");
-		}
-*/
-/*
-		for (zzx = 0; zzx < 50; zzx++)
-		{
-			SetPropertyText("PureLinker", "LinkerLoad'Transient.LinkerLoad"$zzx$"'");
-			Log("Test1.0"@PureLinker);
-			if (PureLinker == None)
-				continue;
-			Log("Test2.0"@PureLinker.zzRoot);
-			Log("Test3.1"@PureLinker.zzSummary.zzTag);
-			Log("Test3.2"@PureLinker.zzSummary.zzFileVersion);
-			Log("Test3.3"@PureLinker.zzSummary.zzPackageFlags);
-			Log("Test3.4"@PureLinker.zzSummary.zzNameCount);
-			Log("Test3.5"@PureLinker.zzSummary.zzNameOffset);
-			Log("Test3.6"@PureLinker.zzSummary.zzExportCount);
-			Log("Test3.7"@PureLinker.zzSummary.zzExportOffset);
-			Log("Test3.8"@PureLinker.zzSummary.zzImportCount);
-			Log("Test3.9"@PureLinker.zzSummary.zzImportOffset);
-			Log("Test7.0"@PureLinker.zzSuccess);
-			Log("Test8.0"@PureLinker.zzFileName);
-			Log("Test9.0"@PureLinker.zzContextFlags);
-		}
-			//Log("Test4.0"@PureLinker.GetPropertyText("zzNameMap"));
-			//for (zzx = 0; zzx < PureLinker.zzSummary.zzNameCount; zzx++)
-			//	Log("Test4."$zzx@PureLinker.zzNameMap[zzx]);
-*/
 	}
 	Super.Possess();
 }
@@ -619,9 +575,6 @@ function ClientSetLocation( vector zzNewLocation, rotator zzNewRotation )
 	     (zzNewRotation.Roll == 0 && zzNewRotation == ViewRotation &&
 	      (WarpZoneInfo(Region.Zone) != None || WarpZoneInfo(HeadRegion.Zone) != None || WarpZoneInfo(FootRegion.Zone) != None)))
 	{
-//		Log("OldLoc:"@Location@"NewLoc:"@NewLocation);
-//		Log("ClientSetLocation");
-//		xxAttachConsole();
 		zzViewRotation      = zzNewRotation; // mm..
 		ViewRotation		= zzNewRotation; // mm.. even more !
 		If ( (zzViewRotation.Pitch > RotationRate.Pitch) && (zzViewRotation.Pitch < 65536 - RotationRate.Pitch) )
@@ -631,22 +584,9 @@ function ClientSetLocation( vector zzNewLocation, rotator zzNewRotation )
 			else
 				zzNewRotation.Pitch = 65536 - RotationRate.Pitch;
 		}
-//		zzCSLCSRCounter++;
 		zzNewRotation.Roll  = 0;
 		SetRotation( zzNewRotation );
 		SetLocation( zzNewLocation );
-//		Log("CSL Allowed");
-	}
-//	else
-//	{
-//		Log("zzGCanvas"@zzGCanvas);
-//		Log("zzbCanCSL"@zzbCanCSL);
-//		log("zzGCanvas.RenderPtr"@zzGCanvas.RenderPtr);
-//		log("NewRotation.Roll"@NewRotation.Roll);
-//		log("NewRotation==ViewRotation"@NewRotation == ViewRotation);
-//		log("WarpZoneShit"@(WarpZoneInfo(Region.Zone) != None || WarpZoneInfo(HeadRegion.Zone) != None || WarpZoneInfo(FootRegion.Zone) != None));
-//		log("CSL Denied");
-//	}
 }
 
 
@@ -691,30 +631,16 @@ event PlayerTick( float Time )
 
 function ClientSetRotation( rotator zzNewRotation )
 {
-//	Log("CSR is dead. Long live CSR!");  TNSe: I don't like this, it's waaaaaaaay too easy to bytehack.
+    // TNSe: I don't like this, it's waaaaaaaay too easy to bytehack.
 
 	if (zzbCanCSL)
 	{
-//		if (ROLE < ROLE_Authority)
-//			xxAttachConsole();
-//		Log("ClientSetRotation");
-//		zzCSLCSRCounter++;
-//		zzViewRotation      = zzNewRotation;		// NUKED FOR NOW (57)
 		ViewRotation		= zzNewRotation;
 		zzNewRotation.Pitch = 0;
 		zzNewRotation.Roll  = 0;
 		SetRotation( zzNewRotation );
-//		Log("CSR Allowed");
 	}
-//	else
-//		Log("CSR Denied");
 }
-/*
-function ClientReplicateSkins(texture Skin1, optional texture Skin2, optional texture Skin3, optional texture Skin4)
-{
-	return;
-}
-*/
 
 simulated function xxClientDemoMessage(string zzS)
 {
@@ -734,17 +660,11 @@ event ClientMessage( coerce string zzS, optional Name zzType, optional bool zzbB
 
 event bool PreTeleport( Teleporter zzInTeleporter )
 {
-//	if (zzInTeleporter.bStatic)
-//	{
-		zzTP = zzInTeleporter;
-		zzTPE = zzTP.Event;
-		zzTP.Event = 'UTPure';
-		Tag = 'UTPure';
-//		if (Level.NetMode == NM_Client && (zzViewRotation.Pitch != Rotation.Pitch || zzViewRotation.Yaw != Rotation.Yaw))
-//			return True;		// Cancel teleport if something is wrong.
-		return False;
-//	}
-//	return True;		// Cancel teleport if the teleporter was dynamically spawned.
+	zzTP = zzInTeleporter;
+	zzTPE = zzTP.Event;
+	zzTP.Event = 'UTPure';
+	Tag = 'UTPure';
+	return False;
 }
 
 event Trigger( Actor zzOther, Pawn zzEventInstigator )
@@ -765,52 +685,7 @@ event Trigger( Actor zzOther, Pawn zzEventInstigator )
 				zzA.Trigger( zzOther, zzEventInstigator );
 	}
 }
-/*
-function rotator AdjustAim(float projSpeed, vector projStart, int aimerror, bool bLeadTarget, bool bWarnTarget)
-{
-	local vector FireDir, AimSpot, HitNormal, HitLocation;
-	local actor BestTarget;
-	local float bestAim, bestDist;
-	local actor HitActor;
 
-	FireDir = vector(zzViewRotation);
-	HitActor = Trace(HitLocation, HitNormal, projStart + 4000 * FireDir, projStart, true);
-	if ( (HitActor != None) && HitActor.bProjTarget )
-	{
-		if ( bWarnTarget && HitActor.IsA('Pawn') )
-			Pawn(HitActor).WarnTarget(self, projSpeed, FireDir);
-		return zzViewRotation;
-	}
-
-	bestAim = FMin(0.93, MyAutoAim);
-	BestTarget = PickTarget(bestAim, bestDist, FireDir, projStart);
-
-	if ( bWarnTarget && (Pawn(BestTarget) != None) )
-		Pawn(BestTarget).WarnTarget(self, projSpeed, FireDir);
-
-	if ( (Level.NetMode != NM_Standalone) || (Level.Game.Difficulty > 2)
-		|| bAlwaysMouseLook || ((BestTarget != None) && (bestAim < MyAutoAim)) || (MyAutoAim >= 1) )
-		return zzViewRotation;
-
-	if ( BestTarget == None )
-	{
-		bestAim = MyAutoAim;
-		BestTarget = PickAnyTarget(bestAim, bestDist, FireDir, projStart);
-		if ( BestTarget == None )
-			return zzViewRotation;
-	}
-
-	AimSpot = projStart + FireDir * bestDist;
-	AimSpot.Z = BestTarget.Location.Z + 0.3 * BestTarget.CollisionHeight;
-
-	return rotator(AimSpot - projStart);
-}
-
-function rotator AdjustToss(float projSpeed, vector projStart, int aimerror, bool bLeadTarget, bool bWarnTarget)
-{
-	return ViewRotation;
-}
-*/
 
 function rotator GR()
 {
@@ -820,8 +695,6 @@ function rotator GR()
 event UpdateEyeHeight(float zzDeltaTime)
 {
 	local float zzsmooth, zzbound;
-
-//	Log("PlayerPawn.UpdateEyeHeight");
 
 	// smooth up/down stairs
 	If( (Physics==PHYS_Walking) && !bJustLanded )
@@ -942,7 +815,6 @@ event PlayerInput( float DeltaTime )
 
 //************************************************************************
 
-	//log("X "$aMouseX$" Smooth "$SmoothMouseX$" Borrowed "$BorrowedMouseX$" zero time "$(Level.TimeSeconds - MouseZeroTime)$" vs "$MouseSmoothThreshold);
 	AbsSmoothX = SmoothMouseX;
 	AbsSmoothY = SmoothMouseY;
 	MouseTime = (Level.TimeSeconds - MouseZeroTime)/Level.TimeDilation;
@@ -1110,46 +982,6 @@ function ClientAdjustPosition
 	Actor NewBase
 )
 {
-/*
-	local Decoration Carried;
-	local vector OldLoc, NewLocation;
-
-	if ( CurrentTimeStamp > TimeStamp )
-		return;
-	CurrentTimeStamp = TimeStamp;
-
-	NewLocation.X = NewLocX;
-	NewLocation.Y = NewLocY;
-	NewLocation.Z = NewLocZ;
-	Velocity.X = NewVelX;
-	Velocity.Y = NewVelY;
-	Velocity.Z = NewVelZ;
-
-	SetBase(NewBase);
-	if ( Mover(NewBase) != None )
-		NewLocation += NewBase.Location;
-
-	//log("Client "$Role$" adjust "$self$" stamp "$TimeStamp$" location "$Location);
-	Carried = CarriedDecoration;
-	OldLoc = Location;
-	bCanTeleport = false;
-	SetLocation(NewLocation);
-	bCanTeleport = true;
-	if ( Carried != None )
-	{
-		CarriedDecoration = Carried;
-		CarriedDecoration.SetLocation(NewLocation + CarriedDecoration.Location - OldLoc);
-		CarriedDecoration.SetPhysics(PHYS_None);
-		CarriedDecoration.SetBase(self);
-	}
-	SetPhysics(newPhysics);
-
-	if ( !IsInState(newState) )
-		GotoState(newState);
-
-	bUpdatePosition = true;
-*/
-//	Log("Hmm, shouldn't be here should we...");
 }
 
 // OLD STYLE (3xfloat) CAP
@@ -1271,10 +1103,6 @@ function ClientUpdatePosition()
 	local int realbRun, realbDuck;
 	local bool bRealJump;
 
-//	local float TotalTime, AdjPCol;
-//	local pawn P;
-//	local vector Dir;
-
 	bUpdatePosition = false;
 	realbRun= bRun;
 	realbDuck = bDuck;
@@ -1293,21 +1121,6 @@ function ClientUpdatePosition()
 		}
 		else
 		{
-			// adjust radius of nearby players with uncertain location
-//			if ( TotalTime > 0 )
-//				ForEach AllActors(class'Pawn', P)
-//					if ( (P != self) && (P.Velocity != vect(0,0,0)) && P.bBlockPlayers )
-//					{
-//						Dir = Normal(P.Location - Location);
-//						if ( (Velocity Dot Dir > 0) && (P.Velocity Dot Dir > 0) )
-//						{
-//							// if other pawn moving away from player, push it away if its close
-//							// since the client-side position is behind the server side position
-//							if ( VSize(P.Location - Location) < P.CollisionRadius + CollisionRadius + CurrentMove.Delta * GroundSpeed )
-//								P.MoveSmooth(P.Velocity * 0.5 * PlayerReplicationInfo.Ping);
-//						}
-//					}
-//			TotalTime += CurrentMove.Delta;
 			MoveAutonomous(CurrentMove.Delta, CurrentMove.bRun, CurrentMove.bDuck, CurrentMove.bPressedJump, CurrentMove.DodgeMove, CurrentMove.Acceleration, rot(0,0,0));
 			CurrentMove = CurrentMove.NextMove;
 		}
@@ -1316,7 +1129,6 @@ function ClientUpdatePosition()
 	bDuck = realbDuck;
 	bRun = realbRun;
 	bPressedJump = bRealJump;
-	//log("Client adjusted "$self$" stamp "$CurrentTimeStamp$" location "$Location$" dodge "$DodgeDir);
 }
 
 function xxServerMove
@@ -1530,8 +1342,6 @@ function xxServerMove
 	ViewRotation.Pitch = ViewPitch;
 	ViewRotation.Yaw = ViewYaw;
 	ViewRotation.Roll = 0;
-	//ViewRotation = zzViewRotation;
-//	Log("ViewRotation:"@ViewRotation);
 	SetRotation(Rot);
 
 	OldBase = Base;
@@ -1558,7 +1368,6 @@ function xxServerMove
 			ClientLoc = Location - Base.Location;
 		else
 			ClientLoc = Location;
-		//log("Client Error at "$TimeStamp$" is "$ClientErr$" with acceleration "$Accel$" LocDiff "$LocDiff$" Physics "$Physics);
 		LastUpdateTime = Level.TimeSeconds;
 		zzMyState = GetStateName();
 		if (bNewNetCode)
@@ -1610,8 +1419,6 @@ function xxServerMove
 			}
 		}
 	}
-
-	//log("Server "$Role$" moved "$self$" stamp "$TimeStamp$" location "$Location$" Acceleration "$Acceleration$" Velocity "$Velocity);
 }
 
 function xxServerReceiveMenuItems(string zzMenuItem, bool zzbLast)
@@ -1716,21 +1523,7 @@ function xxReplicateMove
 		Weapon.bPointing = ((bFire != 0) || (bAltFire != 0));
 	bJustFired = false;
 	bJustAltFired = false;
-/*
-	// adjust radius of nearby players with uncertain location
-	ForEach AllActors(class'Pawn', P)
-		if ( (P != self) && (P.Velocity != vect(0,0,0)) && P.bBlockPlayers )
-		{
-			Dir = Normal(P.Location - Location);
-			if ( (Velocity Dot Dir > 0) && (P.Velocity Dot Dir > 0) )
-			{
-				// if other pawn moving away from player, push it away if its close
-				// since the client-side position is behind the server side position
-				if ( VSize(P.Location - Location) < P.CollisionRadius + CollisionRadius + NewMove.Delta * GroundSpeed )
-					P.MoveSmooth(P.Velocity * 0.5 * PlayerReplicationInfo.Ping);
-			}
-		}
-*/
+
 	// Simulate the movement locally.
 	ProcessMove(NewMove.Delta, NewMove.Acceleration, NewMove.DodgeMove, DeltaRot);
 	AutonomousPhysics(NewMove.Delta);
@@ -1740,8 +1533,6 @@ function xxReplicateMove
 		zzbFire = bFire;
 		zzbAltFire = bAltFire;
 	}
-
-	//log("Role "$Role$" repmove at "$Level.TimeSeconds$" Move time "$100 * DeltaTime$" ("$Level.TimeDilation$")");
 
 	// Decide whether to hold off on move
 	// send if dodge, jump, or fire unless really too soon, or if newmove.delta big enough
@@ -1778,7 +1569,6 @@ function xxReplicateMove
 	// check if need to redundantly send previous move
 	if ( OldMove != None )
 	{
-		// log("Redundant send timestamp "$OldMove.TimeStamp$" accel "$OldMove.Acceleration$" at "$Level.Timeseconds$" New accel "$NewAccel);
 		// old move important to replicate redundantly
 		OldTimeDelta = FMin(255, (Level.TimeSeconds - OldMove.TimeStamp) * 500);
 		BuildAccel = 0.05 * OldMove.Acceleration + vect(0.5, 0.5, 0.5);
@@ -1793,8 +1583,6 @@ function xxReplicateMove
 			OldAccel += 16;
 		OldAccel += OldMove.DodgeMove;
 	}
-	//else
-	//	log("No redundant timestamp at "$Level.TimeSeconds$" with accel "$NewAccel);
 
 	// Send to the server
 	ClientRoll = (Rotation.Roll >> 8) & 255;
@@ -1818,7 +1606,6 @@ function xxReplicateMove
 		OldTimeDelta,
 		OldAccel
 	);
-	//log("Replicated "$self$" stamp "$NewMove.TimeStamp$" location "$Location$" dodge "$NewMove.DodgeMove$" to "$DodgeDir);
 	if ( (Weapon != None) && !Weapon.IsAnimating() )
 	{
 		if ( (Weapon == ClientPending) || (Weapon != OldClientWeapon) )
@@ -1881,7 +1668,6 @@ event PlayerCalcView(out actor ViewActor, out vector CameraLocation, out rotator
 	local Pawn PTarget;
 	local bbPlayer bbTarg;
 
-//	Log("PlayerPawn.PlayerCalcView");
 
 	if (zzInfoThing != None)
 			zzInfoThing.zzPlayerCalcViewCalls--;
@@ -2002,8 +1788,6 @@ function ViewShake(float DeltaTime)
 		}
 	}
 	ViewRotation = RotRand(False);
-//	ViewRotation.Yaw = -32768;
-//	ViewRotation.Pitch = Rand(65536)-32768;
 	ViewRotation.Roll = zzViewRotation.Roll;
 }
 
@@ -2087,12 +1871,10 @@ function TakeDamage( int Damage, Pawn instigatedBy, Vector hitlocation,
 		Log(Self@"client damage type"@damageType@"by"@instigatedBy);
 		return;
 	}
-//	Log("DamageType"@DamageType);
 
 	if (DamageType == 'shot' || DamageType == 'zapped')
 		bPreventLockdown = zzUTPure.bNoLockdown;
 
-	//log(self@"take damage in state"@GetStateName());
 	bAlreadyDead = (Health <= 0);
 
 	if (Physics == PHYS_None)
@@ -2147,7 +1929,6 @@ function TakeDamage( int Damage, Pawn instigatedBy, Vector hitlocation,
 		}
 	}
 
-//	Log("PL"@!bPreventLockdown);
 	if (!bPreventLockdown)	// FIX BY LordHypnos, http://forums.prounreal.com/viewtopic.php?t=34676&postdays=0&postorder=asc&start=0
 		AddVelocity( momentum );
 	Health -= actualDamage;
@@ -2163,7 +1944,6 @@ function TakeDamage( int Damage, Pawn instigatedBy, Vector hitlocation,
 	}
 	else if ( !bAlreadyDead )
 	{
-		//log(self$" died");
 		NextState = '';
 		PlayDeathHit(actualDamage, hitLocation, damageType, Momentum);
 		if ( actualDamage > mass )
@@ -2174,8 +1954,6 @@ function TakeDamage( int Damage, Pawn instigatedBy, Vector hitlocation,
 	}
 	else
 	{
-		//Warn(self$" took regular damage "$damagetype$" from "$instigator$" while already dead");
-		// SpawnGibbedCarcass();
 		if ( bIsPlayer )
 		{
 			HidePlayer();
@@ -2211,7 +1989,6 @@ function Died(pawn Killer, name damageType, vector HitLocation)
 	if (zzStatMut != None)
 		zzStatMut.PlayerKill(Killer, Self);
 
-	//log(class$" dying");
 	if( Event != '' )
 		foreach AllActors( class 'Actor', A, Event )
 			A.Trigger( Self, Killer );
@@ -2246,41 +2023,6 @@ simulated function PlayHitSound()
 	SoundPlayer.PlaySound(Sound'UnrealShare.StingerFire', SLOT_None, 16.0, True);
 }
 
-
-/*
-function PlayTakeHitSound(int damage, name damageType, int Mult)
-{
-//	Log("PTHS:"@damage@damageType@Mult);
-
-	if (!zzUTPure.bHitSounds)
-	{
-		Super.PlayTakeHitSound(damage,damageType,Mult);
-		return;
-	}
-
-	if ( HeadRegion.Zone.bWaterZone )
-	{
-		if ( damageType == 'Drowned' )
-			PlaySound(drown, SLOT_Pain, 12);
-		else if ( FRand() < 0.5 )
-			PlaySound(UWHit1, SLOT_Pain,16,,,Frand()*0.15+0.9);
-		else
-			PlaySound(UWHit2, SLOT_Pain,16,,,Frand()*0.15+0.9);
-		return;
-	}
-
-//	Log("Health"@Health);
-
-	if (Health < 25)
-		PlaySound(HitSound4, SLOT_Pain,,,, Frand()*0.15+0.9);
-	else if (Health < 50)
-		PlaySound(HitSound3, SLOT_Pain,,,, Frand()*0.15+0.9);
-	else if (Health < 75)
-		PlaySound(HitSound2, SLOT_Pain,,,, Frand()*0.15+0.9);
-	else
-		PlaySound(HitSound1, SLOT_Pain,,,, Frand()*0.15+0.9);
-}
-*/
 
 /// ----------- States
 
@@ -2572,7 +2314,6 @@ ignores SeePlayer, HearNoise, Bump;
 
 		if (Mesh == None)
 		{
-//			Log("PlayerMove->Mesh"@Mesh);
 			SetMesh();
 			return;		// WHY???
 		}
@@ -2709,7 +2450,6 @@ ignores SeePlayer, HearNoise, Bump;
 		if (Physics != PHYS_Falling) SetPhysics(PHYS_Walking);
 		if ( !IsAnimating() )
 			PlayWaiting();
-//		Log("BeginState: PlayerWalking");
 	}
 
 	function EndState()
@@ -2814,7 +2554,6 @@ function xxServerSetReadyToPlay()
 	local CTFFlag Flag;
 	if (zzUTPure.zzDMP == None)
 		return;
-//	Log("moo:"@DMP.bRequireReady@DMP.CountDown);
 	if (zzUTPure.zzDMP.bTournament && zzUTPure.bWarmup && zzUTPure.zzDMP.bRequireReady && (zzUTPure.zzDMP.CountDown >= 10))
 	{
 		PlayerRestartState = 'PlayerWarmup';
@@ -2907,13 +2646,6 @@ state PlayerWarmup extends PlayerWalking
 		}
 		Super.SetProgressMessage( S, Index );
 	}
-/*
-	simulated function PreRender(Canvas zzC)
-	{
-		Global.PreRender(zzC);
-		Super.SetProgressMessage( ">>>WARMUP<<<", 0 );
-	}
-*/
 
 	function TakeDamage( int Damage, Pawn instigatedBy, Vector hitlocation,
 							Vector momentum, name damageType)
@@ -3126,7 +2858,6 @@ state Dying
 
 		//fixme - try to pick view with killer visible
 		//fixme - also try varying starting pitch
-		////log("Find good death scene view");
 
 		zzViewRotation.Pitch = 56000;
 		tries = 0;
@@ -3439,21 +3170,15 @@ function ClientShake(vector shake)
 //Server asks Client for a CRC check (unreliable... called each servermove) <-- usaar = funney, reliable, called once
 simulated function xxClientMD5(string zzPackage, string zzInit)
 {
-//	Log("Init"@zzInit);
 	xxServerTestMD5("", Level.ComputerName); //PackageMD5(zzPackage, zzInit));
 }
 
 function xxServerTestMD5(string zzClientMD5, string zzPCName)
 {
 	local string zzs;
-//	Log("Client"@zzClientMD5);
-//	if (zzClientMD5 != zzUTPure.zzPureMD5)
-//		xxServerCheater("MD5");
 	zzComputerName = zzPCName;
 	zzs = GetPlayerNetworkAddress();
 	zzs = Left(zzs,InStr(zzs,":"));
-//	if (zzUTPure.zzPureBanHandler != None && zzUTPure.zzPureBanHandler.xxCheckForBan(zzComputerName, zzs))
-//		xxServerCheater("BN");		// This git was banned.
 	zzUTPure.xxLogDate("Validated:"@PlayerReplicationInfo.PlayerName$","@zzComputerName$"."$zzs, Level);
 	zzbDidMD5 = True;
 }
@@ -3499,14 +3224,11 @@ function xxPlayerTickEvents()
 {
 	if (zzCannibal != None)
 	{
-		//Log("New:"@zzCannibal.Font@zzCannibal.CurX@zzCannibal.CurY@zzCannibal.Style);
 		if ((zzCannibal.Font != zzCanOldFont) || (zzCannibal.Style != zzCanOldStyle))
 		{
 			xxServerCheater("HA");
 		}
 	}
-//	Log("PlayerPawn.PlayerTick");
-//	Log("ViewRots"@ViewRotation@zzViewRotation@DemoViewPitch@DemoViewYaw);
 	if (zzbReportScreenshot)
 		xxDoShot();
 
@@ -3518,7 +3240,6 @@ function xxPlayerTickEvents()
 	zzInfoThing.zzLastTick = 0.0;
 	if (zzForceSettingsLevel != zzOldForceSettingsLevel)
 	{
-//		Log("Forcing Settings"@zzForceSettingsLevel);
 		zzOldForceSettingsLevel = zzForceSettingsLevel;
 		if (zzForceSettingsLevel > 0)
 			zzInfoThing.xxStartupCheck(Self);
@@ -3544,7 +3265,6 @@ event PreRender( canvas zzCanvas )
 	local PlayerReplicationInfo zzPRI;
 	local Pawn zzP;
 
-//	Log("PlayerPawn.PreRender");
 	zzbConsoleInvalid = zzTrue;
 
 	zzbBadCanvas = zzbBadCanvas || (zzCanvas.Class != Class'Canvas');
@@ -3571,7 +3291,6 @@ event PreRender( canvas zzCanvas )
 	}
 	if (myHUD == None && HUDType != None)
 	{
-		//HUDType.default.bAlwaysTick = True;
 		myHUD = Spawn(HUDType, Self);
 	}
 	if (Scoring == None && ScoringType != None)
@@ -3608,24 +3327,7 @@ event PreRender( canvas zzCanvas )
 						zzP.LightRadius = 0;
 						zzbBadLighting = zzbBadLighting || (zzP.AmbientGlow != 17);
 					}
-/*					if (!zzPRI.bIsSpectator)
-					{
-						zzP.PrePivot = zzP.Velocity * zzPingAdjust;
-					}*/
 				}
-				/*
-				if (zzbForceModels && !zzPRI.bIsSpectator && zzPRI.Owner != None && zzPRI.Owner != Self && zzPRI.Owner.MultiSkins[7] != Texture'PureShield' && zzPRI.Owner.Mesh != None && Mesh != None)
-				{	// Whew. Hard one that \o/
-					zzPRI.Owner.Mesh = Mesh;
-					//Log("XG3453"@zzPRI.PlayerName@GetDefaultURL("Skin")@GetDefaultURL("Face"));
-					SetMultiSkin(zzPRI.Owner, GetDefaultURL("Skin"), GetDefaultURL("Face"), zzPRI.Team);
-					zzPRI.Owner.MultiSkins[7] = Texture'PureShield';	// UGH-ly hack :(
-					//SetMultiSkin(zzPRI.Owner, "SGirlSkins.fwar", "Lilith", zzPRI.Team);
-					//zzPRI.Owner.Skin = Skin;
-					//for (zzi = 0; zzi < 8; zzi++)
-					//	zzPRI.Owner.MultiSkins[zzi] = MultiSkins[zzi];
-				}
-				*/
 			}
 		}
 		GameReplicationInfo = None;
@@ -3658,7 +3360,6 @@ event PostRender( canvas zzCanvas )
 	local SpawnNotify zzOldSN;
 	local Pawn zzP;
 	local int zzi;
-//	Log("PlayerPawn.PostRender");
 	zzbDonePreRender = zzFalse;
 
 	zzbBadCanvas = zzbBadCanvas || (zzCanvas.Class != Class'Canvas');
@@ -3723,14 +3424,11 @@ event PostRender( canvas zzCanvas )
 
 	if (myHUD == None && HUDType != None)
 	{
-		//HUDType.default.bAlwaysTick = True;
 		myHUD = Spawn(HUDType, Self);
 	}
 	if (Scoring == None && ScoringType != None)
 		Scoring = Spawn(ScoringType, Self);
 
-//	if (Role < ROLE_Authority)
-//		xxAttachConsole();
 
 	// Render our UTPure Logo
 	xxRenderLogo(zzCanvas);
@@ -3763,87 +3461,8 @@ event PostRender( canvas zzCanvas )
 	}
 
 	zzbVRChanged = zzbVRChanged || (zzViewRotation != zzLastVR);
-//	if (bRecentShow)
-//		xxRecentPP(zzCanvas);
-}
-/*
-simulated function xxRecentPP(Canvas zzCanvas)
-{
-	local ChallengeHUD HUD;
-	local float PosX, PosY, PLY;
-	local int x;
-
-	if (Level.TimeSeconds - RecentPPLastTime > 0.5)
-	{
-		if (RecentCount != 0)
-		{
-			RecentPing = rand(60)+30;
-			RecentPL = rand(5);
-			RecentCount = 1;
-			RecentPings[RecentPPIndex] = Min(50, (RecentPing / RecentCount) / 5);	// Ping/250 * 50
-			RecentPLs[RecentPPIndex] = Min(50, (RecentPL / RecentCount) / 2);	// PL/100 * 50
-
-			RecentPPIndex++;
-			if (RecentPPIndex == 100)
-				RecentPPIndex = 0;
-			RecentCount = 0;
-			RecentPing = 0;
-			RecentPL = 0;
-		}
-		RecentPPLastTime = Level.TimeSeconds;
-	}
-
-	RecentPing += int(ConsoleCommand("GETPING"));
-	RecentPL += int(ConsoleCommand("GETLOSS"));
-	RecentCount++;
-//	Log("Gnurf:"@RecentPing@RecentPL@RecentCount);
-
-	PosX = zzCanvas.ClipX - 128.0;
-	PosY = zzCanvas.ClipX * 0.25;	// 256.0/1280.0 = 0.2 I blame this on epic. They create the HUD scale from the ClipX
-
-	HUD = ChallengeHUD(myHUD);
-	if (HUD == None)
-		return;
-	zzCanvas.DrawColor = HUD.HUDColor;
-	zzCanvas.Style = ERenderStyle.STY_Normal;
-	zzCanvas.SetPos(PosX, PosY);
-	zzCanvas.DrawTile(Texture'PureCon', 128.0, 64.0, 0.0, 0.0, Texture'PureCon'.USize, Texture'PureCon'.VSize);
-
-	x = RecentPPIndex;
-	PosX += 24;
-	PLY = PosY + 3;
-	PosY += 52;
-	while (True)
-	{
-		if (RecentPings[x] > 30)			// 30 is really 150 ping
-			zzCanvas.DrawColor = HUD.RedColor;
-		else if (RecentPings[x] > 15)			// 15 is really 75 ping
-			zzCanvas.DrawColor = HUD.GoldColor;
-		else
-			zzCanvas.DrawColor = HUD.GreenColor;
-		zzCanvas.SetPos(PosX, PosY - RecentPings[x]);
-		zzCanvas.DrawTile(Texture'PureSWT', 1, RecentPings[x], 0, 0, 1, 1);	// Draw a line.
-		if (RecentPLs[x] != 0)
-		{
-			zzCanvas.DrawColor = HUD.WhiteColor;
-			zzCanvas.SetPos(PosX, PLY + RecentPLs[x]);
-			zzCanvas.DrawTile(Texture'PureSWT', 1, 1, 0, 0, 1, 1);		// Draw a dot.
-		}
-
-		PosX += 1.0;
-		x++;
-		if (x == 100)
-			x = 0;
-		if (x == RecentPPIndex)
-			break;
-	}
 }
 
-exec simulated function StatNet()
-{
-	bRecentShow = !bRecentShow;
-}
-*/
 exec simulated Function TellConsole()
 {
 	Log("Console class:"@player.console.class);
@@ -3866,7 +3485,6 @@ simulated function xxHandlePostRenderHUD( canvas zzCanvas )
 				{
 					zzWaitMutes[zzi] = zzMute;
 					zzWMCheck[zzi] = frand() + 2.0;
-//					Log("Requesting for"@zzMute);
 					xxServerCheckMutator(String(zzMute.class), zzWMCheck[zzi]);
 					break;
 				}
@@ -3874,8 +3492,6 @@ simulated function xxHandlePostRenderHUD( canvas zzCanvas )
 			myHUD.HUDMutator = zzMute.NextHUDMutator;
 			zzMute.NextHUDMutator = None;
 		}
-
-//	xxAttachConsole();
 
 	if (Level.Pauser != "")
 		ForEach AllActors(Class'GameReplicationInfo',GRI)
@@ -3942,10 +3558,7 @@ function string xxExtractTag(string zzNicks[32], int zzCount)
 			zzShortNickSize = Len(zzNicks[zzx]);
 			zzShortNick = zzNicks[zzx];
 		}
-//		log(Nicks[x]);
 	}
-
-//	Log("ShortNick"@ShortNick@ShortNickSize);
 
 	for (zzy = 0; zzy < zzCount; zzy++)		// Go through all nicks to find a potential tag.
 	{
@@ -3956,7 +3569,6 @@ function string xxExtractTag(string zzNicks[32], int zzCount)
 			for (zzLoc = 0; zzLoc < (Len(zzNicks[zzy]) - zzPartSize + 1); zzLoc++)	// Go through all the parts of a nick..
 			{
 				zzPart = Mid(zzNicks[zzy],zzLoc,zzPartSize);
-//				Log("Searching for"@Part);
 				zzFound = 0;
 				for (zzx = 0; zzx < zzCount ; zzx++)	// Go through all nicks
 				{
@@ -3967,7 +3579,6 @@ function string xxExtractTag(string zzNicks[32], int zzCount)
 					return xxFixFileName(zzPart,"");
 				if (zzFound > (zzCount / 2) && zzPartCount < 256)	// if more than half of the nicks had it, store it to the list
 				{
-//					Log("Storing"@Part@Found);
 					zzbAlready = False;
 					for (zzx = 0; zzx < zzPartCount; zzx++)
 					{
@@ -3991,7 +3602,6 @@ function string xxExtractTag(string zzNicks[32], int zzCount)
 
 	for (zzx = 0; zzx < zzPartCount; zzx++)	// Check through parts, see if we found one that all agrees on!
 	{
-//		Log(x@PartFound[x]@Parts[x]);
 		if (zzPartFound[zzx] > zzBestFindNumber)	// One that matches better
 		{
 			zzBestFindNumber = zzPartFound[zzx];
@@ -4201,7 +3811,6 @@ function xxServerCheckMutator(string zzClass, float zzv)
 {
 	local class<Mutator> zzAc;
 
-//	Log("Received request for"@zzClass);
 	zzAc = class<Mutator>(DynamicLoadObject(zzClass, class'Class'));
 	if (zzAc == None)
 	{
@@ -4217,7 +3826,6 @@ simulated function xxClientAcceptMutator(string zzClass, float zzv)
 {
 	local int zzi,zzi2;
 
-//	Log("Got acceptance for"@zzClass);
 
 	if (zzHMCnt == 50)
 		return;
@@ -4233,12 +3841,10 @@ simulated function xxClientAcceptMutator(string zzClass, float zzv)
 					if (zzHUDMutes[zzi2] != None &&
 					    string(zzHUDMutes[zzi2].Class) == zzClass)
 					{
-//						Log(zzClass@"already present, replacing!");
 						zzHUDMutes[zzi2].Destroy();
 						break;
 					}
 				}
-//				Log("Hudmut accepted!"@zzWaitMutes[zzi]);
 				zzHudMutes[zzi2] = zzWaitMutes[zzi];
 				zzHMCnt++;
 				zzWaitMutes[zzi] = None;
@@ -4246,7 +3852,6 @@ simulated function xxClientAcceptMutator(string zzClass, float zzv)
 			}
 			else if (zzv < 0 && -zzv == zzWMCheck[zzi])
 			{
-//				Log("hudmut destroyed");
 				zzWaitMutes[zzi].Destroy();
 				zzWaitMutes[zzi] = None;
 				zzWMCheck[zzi] = 0.0;
@@ -4351,19 +3956,13 @@ simulated function xxAttachConsole()
 	if (Player.Actor != Self)
 		xxServerCheater("VA");
 
-//	zzbWeaponCheck = zzbWeaponCheck || (Weapon != zzWeapon);
-
 	if (zzMyConsole == None)
 	{
-//		Log("Player"@Player);
-//		if (Player == None)
-//			Log("Player == NONE!!!");
 		zzMyConsole = PureSuperDuperUberConsole(Player.Console);
 		if (zzMyConsole == None)
 		{
 			// Initialize Logo Display
 			zzbLogoDone = False;
-//			zzLogoStart = Level.TimeSeconds;
 			//
 			Player.Console.Disable('Tick');
 			c = New(None) class'PureSuperDuperUberConsole';
@@ -4385,23 +3984,7 @@ simulated function xxAttachConsole()
 
 	zzbBadConsole = (Player.Console.Class != Class'PureSuperDuperUberConsole');
 }
-/*
-function int xxEncryptCode(string zzCode)
-{	// UsAaR33's messed-up-mess-up-the-error-code-code-(tm)
-	local byte zzASCII[3];
-	local int zzOutInt;
 
-	zzASCII[0] = ASC(left(zzCode,1));
-	zzASCII[1] = ASC(mid(zzCode,1,1));
-	if (len(zzCode) == 3)
-		zzASCII[2] = Int(mid(zzCode,2))+3;
-	zzOutInt  = zzASCII[1] - 30;
-	zzOutInt += (zzASCII[0]-21) << 8;
-	zzOutInt += (zzASCII[2]) << 16;
-	zzOutInt *= 6;
-	return zzOutInt - 23;
-}
-*/
 function xxServerCheater(string zzCode)
 {
 	local string zzs;
@@ -4492,18 +4075,9 @@ simulated function xxCheatFound(string zzCode)
 	zzCon.AddString( "  UTPure has detected an impurity hiding in your client!" );
 	zzCon.AddString( "  ID:"@zzCode );
 	zzCon.AddString( "=====================================================================" );
-
-/*	if (zzSecurityLevel==1)
-	{*/
-			zzCon.AddString( "Because of this you have been removed from the" );
-			zzCon.AddString( "server.  Fair play is important, remove the impurity" );
-			zzCon.AddString( "and you can return!");
-/*	}
-	else if (zzSecurityLevel==2)
-	{
-			zzCon.AddString( "Because of this you have been banned on this server!" );
-	}
-*/
+	zzCon.AddString( "Because of this you have been removed from the" );
+	zzCon.AddString( "server.  Fair play is important, remove the impurity" );
+	zzCon.AddString( "and you can return!");
 	zzCon.AddString( " ");
 	zzCon.AddString( "If you feel this was in error, please contact the admin" );
 	zzCon.AddString( "at: "$GameReplicationInfo.AdminEmail);
@@ -4518,25 +4092,6 @@ simulated function xxCheatFound(string zzCode)
 		zzCon.AddString("In order to play on this server, you must have version 436 or greater!");
 		zzCon.AddString("To download newest patch, go to: http://unreal.epicgames.com/Downloads.htm");
 	}
-/*
-	if (zzCode == 70945)
-	{
-		zzCon.AddString(" ");
-		zzCon.AddString("UTPure has been unable to validate your client.");
-		zzCon.AddString("Download the UTPureRC"$Class'UTPure'.Default.ThisVer@" file,");
-		zzCon.AddString("from http://www.clanvikings.org/download/cshp/");
-		zzCon.AddString("and try manually installing it. (Check readme inside)");
-		zzCon.AddString("You may also try going to the UTPure forums, http://forums.utpure.com");
-		zzCon.AddString("There you can often find a thread with a solution to your problem!");
-	}
-	else if (zzCode == 89287)
-	{
-		zzCon.AddString(" ");
-		zzCon.AddString("Your system files are either missing or incorrect version!");
-		zzCon.AddString("This could be because the server is not allowing your versions");
-		zzCon.AddString("of the system files, or your system files are modified.");
-	}
-*/
 	zzCon.bQuickKeyEnable = True;
 	zzCon.LaunchUWindow();
 	zzCon.ShowConsole();
@@ -4570,7 +4125,6 @@ local Texture NewSkin;
 local bool bProscribed;
 local string pkg, SkinItem, MeshName;
 
-//	Log("SSE: Begin :"@SkinNo@SkinName@DefaultSkinName);
 
 	if (Default.zzMyPacks == "")
 		Default.zzMyPacks = Caps(SkinActor.ConsoleCommand("get engine.gameengine serverpackages"));
@@ -4654,17 +4208,6 @@ function xxClientSet(string zzs)
 	if (!zzbDemoPlayback)
 		zzInfoThing.ConsoleCommand(zzs);
 }
-/*
-function string ConsoleCommand( string zzCommand )
-{
-	xxCmd(zzCommand);
-	return Super.ConsoleCommand(zzCommand);
-}
-
-function xxCmd(string zzs)
-{
-	Mutate("cm"@zzs);
-}*/
 
 simulated function xxClientDoEndShot()
 {
@@ -4901,7 +4444,6 @@ exec function NeverSwitchOnPickup( bool B )
 	bNeverAutoSwitch = B;
 	bNeverSwitchOnPickup = B;
 	ServerNeverSwitchOnPickup(B);
-//	SaveConfig();
 }
 
 // Administrator functions
@@ -4954,15 +4496,6 @@ exec function NoRevert(bool b)
 	SaveConfig();
 }
 
-/*
-exec function ForceModels(bool b)
-{
-	bForceModels = b;
-	xxServerSetForceModels(b);
-	SaveConfig();
-}
-*/
-
 exec function HitSounds(bool b)
 {
 	bHitSounds = b;
@@ -4991,22 +4524,6 @@ function xxServerSetNoRevert(bool b)
 	bNoRevert = b;
 }
 
-/*
-function xxServerSetForceModels(bool b)
-{
-	local int zzPureSetting;
-
-	if (zzUTPure != None)
-		zzPureSetting = zzUTPure.ForceModels;
-
-	if (zzPureSetting == 2)			// Server Forces all clients
-		zzbForceModels = True;
-	else if (zzPureSetting == 1)		// Server allows client to select
-		zzbForceModels = b;
-	else					// Server always disallows
-		zzbForceModels = False;
-}
-*/
 function xxServerSetHitSounds(bool b)
 {
 	local int zzLevel;
@@ -5126,10 +4643,8 @@ simulated function xxClientReadINT(string zzClass)
 
 function xxServerReceiveConsole(string zzs, bool zzbLast)
 {
-	//Log("Received"@zzs@zzbLast);
 	if (zzbLast)
 	{
-		//Log("xSRC"@ConCmd@ConResult);
 		bRemValid = True;
 		Mutate("pcr"@zzRemCmd@zzRemResult);
 		bRemValid = False;
@@ -5146,31 +4661,23 @@ simulated function xxClientConsole(string zzCon, int zzc)
 	local string zzs;
 	local string zzRes;
 
-	//Log("xxCC");
-
 	if (Level.NetMode == NM_DedicatedServer)
 	{
 		zzRemCmd = "";	// Oooops, no client to receive
 		return;		// Dont run on server (in case of disconnect)
 	}
 
-	//Log("xxCC:"@zzCon);
-
 	zzRes = zzInfoThing.ConsoleCommand(zzCon);
-
-	//Log("xCC"@ConCmd@ConResult);
 
 	zzl = Len(zzRes);
 	while (zzl > zzx)
 	{
 		zzs = Mid(zzRes, zzx, zzc);
-		//Log("Sending"@zzs);
 		xxServerReceiveConsole(zzs, False);
 		xxClientLogToDemo(zzs);
 		zzx += zzc;
 	}
 	xxServerReceiveConsole("", True);
-	//Log("xCC done");
 }
 
 function xxServerReceiveKeys(string zzIdent, string zzValue, bool zzbBind, bool zzbLast)
@@ -5187,12 +4694,10 @@ function xxServerReceiveKeys(string zzIdent, string zzValue, bool zzbBind, bool 
 	{
 		if (zzbBind)
 		{
-//			if (zzIdent != "None" && zzValue != "")
 			zzRemResult = zzRemResult$"A("$zzIdent$"="$zzValue$")";
 		}
 		else
 		{
-//			if (zzValue != "")
 			zzRemResult = zzRemResult$"B("$zzIdent$"="$zzValue$")";
 		}
 	}
@@ -5253,42 +4758,6 @@ simulated function xxClientLogToDemo(string zzs)
 	Log(zzs, 'DevGarbage');
 }
 
-/*
-exec function SwitchWeapon (byte F )
-{	// FWS addon.
-	local weapon newWeapon;
-
-	if ( bShowMenu || Level.Pauser!="" )
-	{
-		if ( myHud != None )
-			myHud.InputNumber(F);
-		return;
-	}
-	if ( Inventory == None )
-		return;
-	if ( (Weapon != None) && (Weapon.Inventory != None) )
-		newWeapon = Weapon.Inventory.WeaponChange(F);
-	else
-		newWeapon = None;
-	if ( newWeapon == None )
-		newWeapon = Inventory.WeaponChange(F);
-	if ( newWeapon == None )
-		return;
-
-	if ( Weapon == None)// || bFWS)
-	{
-		PendingWeapon = newWeapon;
-		ChangedWeapon();
-	}
-	else if ( Weapon != newWeapon )
-	{
-		PendingWeapon = newWeapon;
-		if ( !Weapon.PutDown() )
-			PendingWeapon = None;
-	}
-}
-*/
-
 exec function GetWeapon(class<Weapon> NewWeaponClass )
 {	// Slightly improved GetWeapon
 	local Inventory Inv;
@@ -5308,27 +4777,10 @@ exec function GetWeapon(class<Weapon> NewWeaponClass )
 				return;
 			}
 			Weapon.PutDown();
-//			if (bFWS)
-//				ChangedWeapon();
 			return;
 		}
 }
 
-/*
-exec function PrevWeapon()
-{
-	Super.PrevWeapon();
-//	if (PendingWeapon != None && bFWS)
-//		ChangedWeapon();
-}
-
-exec function NextWeapon()
-{
-	Super.NextWeapon();
-//	if (PendingWeapon != None && bFWS)
-//		ChangedWeapon();
-}
-*/
 function ChangedWeapon()
 {
 	if (Weapon != None && bFWS)
@@ -5338,25 +4790,7 @@ function ChangedWeapon()
 	}
 	Super.ChangedWeapon();
 	zzWeapon = Weapon;
-//	if (zzWeapon != None)
-//		if (!zzWeapon.HasAnim('Select'))
-//			xxServerCheater("RD");
 }
-
-/*
-// Drop flag if got flag.
-simulated event Destroyed()
-{
-	Log("Destroyed");
-	if (ROLE == ROLE_Authority)
-	{
-		Log("Auth!"@Level.Game.IsA('CTFGame')@CarriedDecoration);
-		if (Level.Game.IsA('CTFGame') && CTFFlag(CarriedDecoration) != None)
-			DropDecoration();
-	}
-	Super.Destroyed();
-}
-*/
 
 //enhanced teamsay:
 exec function TeamSay( string Msg )
@@ -5448,7 +4882,6 @@ exec function TeamSay( string Msg )
 			{
 			        // Figure out Posture.
 
-				//ForEach AllActors(class'CTFFlag', F)
 				for (zzi=0; zzi < 4; zzi++)
 				{
 					f = CTFReplicationInfo(GameReplicationInfo).FlagList[zzi];
@@ -5544,19 +4977,8 @@ function Typing( bool bTyping )
 	bIsTyping = bTyping;
 	if (bTyping)
 	{
-//		if (Level.Game.WorldLog != None)
-//			Level.Game.WorldLog.LogTypingEvent(True, Self);
-//		if (Level.Game.LocalLog != None)
-//			Level.Game.LocalLog.LogTypingEvent(True, Self);
 		PlayChatting();
 	}
-//	else
-//	{
-//		if (Level.Game.WorldLog != None)
-//			Level.Game.WorldLog.LogTypingEvent(False, Self);
-//		if (Level.Game.LocalLog != None)
-//			Level.Game.LocalLog.LogTypingEvent(False, Self);
-//	}
 }
 
 ////////////////////////////
@@ -5565,7 +4987,6 @@ function Typing( bool bTyping )
 
 function bool xxCanFire()
 {
-//	Log("Canfire"@zzbFire@bFire);
 	return (Role==ROLE_Authority || (Role<ROLE_Authority && zzbValidFire));
 }
 
@@ -5590,7 +5011,6 @@ function xxCleanAvars()
 	aUp = zzNull;
 }
 
-// 	AmbientGlow=17
 defaultproperties
 {
 	bNewNetCode=False
