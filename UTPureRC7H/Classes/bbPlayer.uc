@@ -208,21 +208,9 @@ replication
 		xxCheatFound,xxClientMD5,xxClientSet,xxClientDoScreenshot,xxClientDoEndShot,xxClientConsole,
 		xxClientKeys,xxClientReadINT;
 
-	// Server->Client function.
-	unreliable if (RemoteRole == ROLE_AutonomousProxy)
-		xxPureCAP,xxPureCAPLevelBase,					// ClientAdjustPosition (vector based)
-		xxPureCAPWalking,
-		xxPureCAPWalkingWalkingLevelBase,xxPureCAPWalkingWalking;
-
-	// Server->Client function.
-	unreliable if (RemoteRole == ROLE_AutonomousProxy)
-		xxCAP,xxCAPLevelBase,						// ClientAdjustPosition (float based)
-		xxCAPWalking,
-		xxCAPWalkingWalkingLevelBase,xxCAPWalkingWalking;
-
 	// Client->Server
 	unreliable if( ROLE < ROLE_Authority )
-		xxServerMove, xxServerCheater,
+		xxServerCheater,
 		zzbConsoleInvalid, zzFalse, zzTrue, zzNetspeed, zzbBadConsole, zzbBadCanvas, zzbVRChanged,
 		zzbStoppingTraceBot, zzbForcedTick, zzbDemoRecording, zzbBadLighting, zzClientTD, zzbBadMaxShake;
 
@@ -1038,58 +1026,6 @@ simulated function PlayHitSound()
 
 state FeigningDeath
 {
-	function xxServerMove
-	(
-		float TimeStamp,
-		vector Accel,
-		vector ClientLoc,
-		bool NewbRun,
-		bool NewbDuck,
-		bool NewbJumpStatus,
-		bool bFired,
-		bool bAltFired,
-		bool bForceFire,
-		bool bForceAltFire,
-		eDodgeDir DodgeMove,
-		byte ClientRoll,
-		int View,
-		optional byte OldTimeDelta,
-		optional int OldAccel
-	)
-	{
-		Global.xxServerMove(TimeStamp, Accel, ClientLoc, NewbRun, NewbDuck, NewbJumpStatus,
-							bFired, bAltFired, bForceFire, bForceAltFire, DodgeMove, ClientRoll, (32767 & (Rotation.Pitch/2)) * 32768 + (32767 & (Rotation.Yaw/2)));
-	}
-
-	function PlayerMove( float DeltaTime)
-	{
-		local rotator currentRot;
-		local vector NewAccel;
-
-		aLookup  *= 0.24;
-		aTurn    *= 0.24;
-
-		// Update acceleration.
-		if ( !FeignAnimCheck()  && (aForward != 0) || (aStrafe != 0) )
-			NewAccel = vect(0,0,1);
-		else
-			NewAccel = vect(0,0,0);
-
-		// Update view rotation.
-		currentRot = Rotation;
-		xxUpdateRotation(DeltaTime, 1);
-		SetRotation(currentRot);
-
-		if (!zzbWeaponTracer)
-			ViewRotation = zzViewRotation;
-
-		if ( Role < ROLE_Authority ) // then save this move and replicate it
-			xxReplicateMove(DeltaTime, NewAccel, DODGE_None, Rot(0,0,0));
-		else
-			ProcessMove(DeltaTime, NewAccel, DODGE_None, Rot(0,0,0));
-		bPressedJump = false;
-	}
-
 	event PlayerTick( float DeltaTime )
 	{
 		zzbCanCSL = zzFalse;
@@ -1127,26 +1063,6 @@ state FeigningDeath
 
 state PlayerSwimming
 {
-
-	function ProcessMove(float DeltaTime, vector NewAccel, eDodgeDir DodgeMove, rotator DeltaRot)
-	{
-		local vector X,Y,Z, Temp;
-
-		GetAxes(ViewRotation,X,Y,Z);
-		Acceleration = NewAccel;
-
-		SwimAnimUpdate( (X Dot Acceleration) <= 0 );
-
-		bUpAndOut = ((X Dot Acceleration) > 0) && ((Acceleration.Z > 0) || (ViewRotation.Pitch > 2048));
-
-		if ( bUpAndOut && !Region.Zone.bWaterZone && CheckWaterJump(Temp) ) //check for waterjump
-		{
-			velocity.Z = 330 + 2 * CollisionRadius; //set here so physics uses this for remainder of tick
-			PlayDuck();
-			GotoState('PlayerWalking');
-		}
-	}
-
 	event PlayerTick( float DeltaTime )
 	{
 		zzbCanCSL = zzFalse;
@@ -1154,45 +1070,6 @@ state PlayerSwimming
 		zzTick = DeltaTime;
 		Super.PlayerTick(DeltaTime);
 	}
-
-	function PlayerMove(float DeltaTime)
-	{
-		local rotator oldRotation;
-		local vector X,Y,Z, NewAccel;
-		local float Speed2D;
-
-		GetAxes(zzViewRotation,X,Y,Z);
-
-		aForward *= 0.2;
-		aStrafe  *= 0.1;
-		aLookup  *= 0.24;
-		aTurn    *= 0.24;
-		aUp		 *= 0.1;
-
-		NewAccel = aForward*X + aStrafe*Y + aUp*vect(0,0,1);
-
-		//add bobbing when swimming
-		if ( !bShowMenu )
-		{
-			Speed2D = Sqrt(Velocity.X * Velocity.X + Velocity.Y * Velocity.Y);
-			WalkBob = Y * Bob *  0.5 * Speed2D * sin(4.0 * Level.TimeSeconds);
-			WalkBob.Z = Bob * 1.5 * Speed2D * sin(8.0 * Level.TimeSeconds);
-		}
-
-		// Update rotation.
-		oldRotation = Rotation;
-		xxUpdateRotation(DeltaTime, 2);
-
-		if (!zzbWeaponTracer)
-			ViewRotation = zzViewRotation;
-
-		if ( Role < ROLE_Authority ) // then save this move and replicate it
-			xxReplicateMove(DeltaTime, NewAccel, DODGE_None, OldRotation - Rotation);
-		else
-			ProcessMove(DeltaTime, NewAccel, DODGE_None, OldRotation - Rotation);
-		bPressedJump = false;
-	}
-
 
 	event UpdateEyeHeight(float DeltaTime)
 	{
@@ -1204,7 +1081,6 @@ state PlayerSwimming
 	{
 		if ( !Region.Zone.bWaterZone && (Role == ROLE_Authority) )
 		{
-			//log("timer out of water");
 			GotoState('PlayerWalking');
 			AnimEnd();
 		}
@@ -1217,7 +1093,6 @@ state PlayerSwimming
 		Disable('Timer');
 		if ( !IsAnimating() )
 			TweenToWaiting(0.3);
-//		log("BeginState: PlayerSwimming");
 	}
 }
 
@@ -1229,30 +1104,6 @@ state PlayerFlying
 		xxPlayerTickEvents();
 		zzTick = DeltaTime;
 		Super.PlayerTick(DeltaTime);
-	}
-
-	function PlayerMove(float DeltaTime)
-	{
-		local vector X,Y,Z;
-
-		GetAxes(Rotation,X,Y,Z);
-
-		aForward *= 0.2;
-		aStrafe  *= 0.2;
-		aLookup  *= 0.24;
-		aTurn    *= 0.24;
-
-		Acceleration = aForward*X + aStrafe*Y;
-		// Update rotation.
-		xxUpdateRotation(DeltaTime, 2);
-
-		if (!zzbWeaponTracer)
-			ViewRotation = zzViewRotation;
-
-		if ( Role < ROLE_Authority ) // then save this move and replicate it
-			xxReplicateMove(DeltaTime, Acceleration, DODGE_None, rot(0,0,0));
-		else
-			ProcessMove(DeltaTime, Acceleration, DODGE_None, rot(0,0,0));
 	}
 }
 
@@ -1266,31 +1117,6 @@ state CheatFlying
 		xxPlayerTickEvents();
 		zzTick = DeltaTime;
 		Super.PlayerTick(DeltaTime);
-	}
-
-	function PlayerMove(float DeltaTime)
-	{
-		local vector X,Y,Z;
-
-		GetAxes(zzViewRotation,X,Y,Z);
-
-		aForward *= 0.1;
-		aStrafe  *= 0.1;
-		aLookup  *= 0.24;
-		aTurn    *= 0.24;
-		aUp		 *= 0.1;
-
-		Acceleration = aForward*X + aStrafe*Y + aUp*vect(0,0,1);
-
-		xxUpdateRotation(DeltaTime, 1);
-
-		if (!zzbWeaponTracer)
-			ViewRotation = zzViewRotation;
-
-		if ( Role < ROLE_Authority ) // then save this move and replicate it
-			xxReplicateMove(DeltaTime, Acceleration, DODGE_None, rot(0,0,0));
-		else
-			ProcessMove(DeltaTime, Acceleration, DODGE_None, rot(0,0,0));
 	}
 }
 
@@ -1310,134 +1136,6 @@ ignores SeePlayer, HearNoise, Bump;
 		else
 			DodgeDir = DODGE_None;
 		Global.Landed(HitNormal);
-	}
-
-	function PlayerMove( float DeltaTime )
-	{
-		local vector X,Y,Z, NewAccel;
-		local EDodgeDir OldDodge;
-		local eDodgeDir DodgeMove;
-		local rotator OldRotation;
-		local float Speed2D;
-		local bool	bSaveJump;
-		local name AnimGroupName;
-
-		if (Mesh == None)
-		{
-			SetMesh();
-			return;		// WHY???
-		}
-
-		GetAxes(Rotation,X,Y,Z);
-
-		aForward *= 0.4;
-		aStrafe  *= 0.4;
-		aLookup  *= 0.24;
-		aTurn    *= 0.24;
-
-		// Update acceleration.
-		NewAccel = aForward*X + aStrafe*Y;
-		NewAccel.Z = 0;
-		// Check for Dodge move
-		if ( DodgeDir == DODGE_Active )
-			DodgeMove = DODGE_Active;
-		else
-			DodgeMove = DODGE_None;
-		if (DodgeClickTime > 0.0)
-		{
-			if ( DodgeDir < DODGE_Active )
-			{
-				OldDodge = DodgeDir;
-				DodgeDir = DODGE_None;
-				if (bEdgeForward && bWasForward)
-					DodgeDir = DODGE_Forward;
-				if (bEdgeBack && bWasBack)
-					DodgeDir = DODGE_Back;
-				if (bEdgeLeft && bWasLeft)
-					DodgeDir = DODGE_Left;
-				if (bEdgeRight && bWasRight)
-					DodgeDir = DODGE_Right;
-				if ( DodgeDir == DODGE_None)
-					DodgeDir = OldDodge;
-				else if ( DodgeDir != OldDodge )
-					DodgeClickTimer = DodgeClickTime + 0.5 * DeltaTime;
-				else
-					DodgeMove = DodgeDir;
-			}
-
-			if (DodgeDir == DODGE_Done)
-			{
-				DodgeClickTimer -= DeltaTime;
-				if (DodgeClickTimer < -0.35)
-				{
-					DodgeDir = DODGE_None;
-					DodgeClickTimer = DodgeClickTime;
-				}
-			}
-			else if ((DodgeDir != DODGE_None) && (DodgeDir != DODGE_Active))
-			{
-				DodgeClickTimer -= DeltaTime;
-				if (DodgeClickTimer < 0)
-				{
-					DodgeDir = DODGE_None;
-					DodgeClickTimer = DodgeClickTime;
-				}
-			}
-		}
-
-		// Fix by DB
-		if (AnimSequence != '')
-			AnimGroupName = GetAnimGroup(AnimSequence);
-
-		if ( (Physics == PHYS_Walking) && (AnimGroupName != 'Dodge') )
-		{
-			//if walking, look up/down stairs - unless player is rotating view
-			if ( !bKeyboardLook && (bLook == 0) )
-			{
-				if ( bLookUpStairs )
-					zzViewRotation.Pitch = FindStairRotation(deltaTime);
-				else if ( bCenterView )
-				{
-					zzViewRotation.Pitch = zzViewRotation.Pitch & 65535;
-					if (zzViewRotation.Pitch > 32768)
-						zzViewRotation.Pitch -= 65536;
-					zzViewRotation.Pitch = zzViewRotation.Pitch * (1 - 12 * FMin(0.0833, deltaTime));
-					if ( Abs(zzViewRotation.Pitch) < 1000 )
-						zzViewRotation.Pitch = -500;
-				}
-			}
-
-			Speed2D = Sqrt(Velocity.X * Velocity.X + Velocity.Y * Velocity.Y);
-			//add bobbing when walking
-			if ( !bShowMenu )
-				CheckBob(DeltaTime, Speed2D, Y);
-		}
-		else if ( !bShowMenu )
-		{
-			BobTime = 0;
-			WalkBob = WalkBob * (1 - FMin(1, 8 * deltatime));
-		}
-
-		// Update rotation.
-		OldRotation = Rotation;
-		xxUpdateRotation(DeltaTime, 1);
-
-		if ( bPressedJump && (AnimGroupName == 'Dodge') )
-		{
-			bSaveJump = true;
-			bPressedJump = false;
-		}
-		else
-			bSaveJump = false;
-
-		if (!zzbWeaponTracer)
-			ViewRotation = zzViewRotation;
-
-		if ( Role < ROLE_Authority ) // then save this move and replicate it
-			xxReplicateMove(DeltaTime, NewAccel, DodgeMove, OldRotation - Rotation);
-		else
-			ProcessMove(DeltaTime, NewAccel, DodgeMove, OldRotation - Rotation);
-		bPressedJump = bSaveJump;
 	}
 
 	event PlayerTick( float DeltaTime )
@@ -1518,31 +1216,6 @@ state PlayerWaiting
 		xxPlayerTickEvents();
 		zzTick = DeltaTime;
 		Super.PlayerTick(DeltaTime);
-	}
-
-	function PlayerMove(float DeltaTime)
-	{
-		local vector X,Y,Z;
-
-		GetAxes(zzViewRotation,X,Y,Z);
-
-		aForward *= 0.1;
-		aStrafe  *= 0.1;
-		aLookup  *= 0.24;
-		aTurn    *= 0.24;
-		aUp		 *= 0.1;
-
-		Acceleration = aForward*X + aStrafe*Y + aUp*vect(0,0,1);
-
-		xxUpdateRotation(DeltaTime, 1);
-
-		if (!zzbWeaponTracer)
-			ViewRotation = zzViewRotation;
-
-		if ( Role < ROLE_Authority ) // then save this move and replicate it
-			xxReplicateMove(DeltaTime, Acceleration, DODGE_None, rot(0,0,0));
-		else
-			ProcessMove(DeltaTime, Acceleration, DODGE_None, rot(0,0,0));
 	}
 
 	exec function Fire(optional float F)
@@ -1716,31 +1389,6 @@ state PlayerSpectating
 		Super.PlayerTick(DeltaTime);
 	}
 
-	function PlayerMove(float DeltaTime)
-	{
-		local vector X,Y,Z;
-
-		GetAxes(zzViewRotation,X,Y,Z);
-
-		aForward *= 0.1;
-		aStrafe  *= 0.1;
-		aLookup  *= 0.24;
-		aTurn    *= 0.24;
-		aUp		 *= 0.1;
-
-		Acceleration = aForward*X + aStrafe*Y + aUp*vect(0,0,1);
-
-		xxUpdateRotation(DeltaTime, 1);
-
-		if (!zzbWeaponTracer)
-			ViewRotation = zzViewRotation;
-
-		if ( Role < ROLE_Authority ) // then save this move and replicate it
-			xxReplicateMove(DeltaTime, Acceleration, DODGE_None, rot(0,0,0));
-		else
-			ProcessMove(DeltaTime, Acceleration, DODGE_None, rot(0,0,0));
-	}
-
 }
 //===============================================================================
 state PlayerWaking
@@ -1752,26 +1400,6 @@ state PlayerWaking
 		xxPlayerTickEvents();
 		zzTick = DeltaTime;
 		Super.PlayerTick(DeltaTime);
-	}
-
-	function PlayerMove(Float DeltaTime)
-	{
-		ViewFlash(deltaTime * 0.5);
-		if ( TimerRate == 0 )
-		{
-			zzViewRotation.Pitch -= DeltaTime * 12000;
-			if ( zzViewRotation.Pitch < 0 )
-			{
-				zzViewRotation.Pitch = -500;
-				GotoState('PlayerWalking');
-			}
-			ViewRotation.Pitch = zzViewRotation.Pitch;
-		}
-
-		if ( Role < ROLE_Authority ) // then save this move and replicate it
-			xxReplicateMove(DeltaTime, vect(0,0,0), DODGE_None, rot(0,0,0));
-		else
-			ProcessMove(DeltaTime, vect(0,0,0), DODGE_None, rot(0,0,0));
 	}
 
 	function BeginState()
@@ -1798,63 +1426,6 @@ state Dying
 		xxPlayerTickEvents();
 		zzTick = DeltaTime;
 		Super.PlayerTick(DeltaTime);
-	}
-
-	function PlayerMove(float DeltaTime)
-	{
-		local vector X,Y,Z;
-
-		if ( !bFrozen )
-		{
-			if ( bPressedJump )
-			{
-				Fire(0);
-				bPressedJump = false;
-			}
-			GetAxes(zzViewRotation,X,Y,Z);
-			// Update view rotation.
-			aLookup  *= 0.24;
-			aTurn    *= 0.24;
-			zzViewRotation.Yaw += 32.0 * DeltaTime * aTurn;
-			zzViewRotation.Pitch += 32.0 * DeltaTime * aLookUp;
-			zzViewRotation.Pitch = zzViewRotation.Pitch & 65535;
-			If ((zzViewRotation.Pitch > 18000) && (zzViewRotation.Pitch < 49152))
-			{
-				If (aLookUp > 0)
-					zzViewRotation.Pitch = 18000;
-				else
-					zzViewRotation.Pitch = 49152;
-			}
-			ViewRotation = zzViewRotation;
-			if ( Role < ROLE_Authority ) // then save this move and replicate it
-				xxReplicateMove(DeltaTime, vect(0,0,0), DODGE_None, rot(0,0,0));
-		}
-		ViewShake(DeltaTime);
-		ViewFlash(DeltaTime);
-		ViewRotation = zzViewRotation;
-	}
-
-	function xxServerMove
-	(
-		float TimeStamp,
-		vector Accel,
-		vector ClientLoc,
-		bool NewbRun,
-		bool NewbDuck,
-		bool NewbJumpStatus,
-		bool bFired,
-		bool bAltFired,
-		bool bForceFire,
-		bool bForceAltFire,
-		eDodgeDir DodgeMove,
-		byte ClientRoll,
-		int View,
-		optional byte OldTimeDelta,
-		optional int OldAccel
-	)
-	{
-		Global.xxServerMove(TimeStamp, Accel, ClientLoc, false, false, false, false, false, false, false,
-				DodgeMove, ClientRoll, View);
 	}
 
 	function FindGoodView()
@@ -1907,66 +1478,6 @@ ignores SeePlayer, HearNoise, KilledBy, Bump, HitWall, HeadZoneChange, FootZoneC
 		xxPlayerTickEvents();
 		zzTick = DeltaTime;
 		Super.PlayerTick(DeltaTime);
-	}
-
-	function PlayerMove(float DeltaTime)
-	{
-		local vector X,Y,Z;
-
-		GetAxes(zzViewRotation,X,Y,Z);
-		// Update view rotation.
-
-		if ( !bFixedCamera )
-		{
-			aLookup  *= 0.24;
-			aTurn    *= 0.24;
-			zzViewRotation.Yaw += 32.0 * DeltaTime * aTurn;
-			zzViewRotation.Pitch += 32.0 * DeltaTime * aLookUp;
-			zzViewRotation.Pitch = zzViewRotation.Pitch & 65535;
-			If ((zzViewRotation.Pitch > 18000) && (zzViewRotation.Pitch < 49152))
-			{
-				If (aLookUp > 0)
-					zzViewRotation.Pitch = 18000;
-				else
-					zzViewRotation.Pitch = 49152;
-			}
-		}
-		else if ( ViewTarget != None )
-			zzViewRotation = ViewTarget.Rotation;
-
-		ViewRotation = zzViewRotation;
-		ViewShake(DeltaTime);
-		ViewFlash(DeltaTime);
-
-		if ( Role < ROLE_Authority ) // then save this move and replicate it
-			xxReplicateMove(DeltaTime, vect(0,0,0), DODGE_None, rot(0,0,0));
-		else
-			ProcessMove(DeltaTime, vect(0,0,0), DODGE_None, rot(0,0,0));
-		bPressedJump = false;
-	}
-
-	function xxServerMove
-	(
-		float TimeStamp,
-		vector InAccel,
-		vector ClientLoc,
-		bool NewbRun,
-		bool NewbDuck,
-		bool NewbJumpStatus,
-		bool bFired,
-		bool bAltFired,
-		bool bForceFire,
-		bool bForceAltFire,
-		eDodgeDir DodgeMove,
-		byte ClientRoll,
-		int View,
-		optional byte OldTimeDelta,
-		optional int OldAccel
-	)
-	{
-		Global.xxServerMove(TimeStamp, InAccel, ClientLoc, NewbRun, NewbDuck, NewbJumpStatus,
-							bFired, bAltFired, bForceFire, bForceAltFire, DodgeMove, ClientRoll, (32767 & (zzViewRotation.Pitch/2)) * 32768 + (32767 & (zzViewRotation.Yaw/2)) );
-
 	}
 
 	function FindGoodView()
