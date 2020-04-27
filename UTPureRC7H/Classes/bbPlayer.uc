@@ -332,27 +332,6 @@ event Possess()
 	Super.Possess();
 }
 
-function ClientSetLocation( vector zzNewLocation, rotator zzNewRotation )
-{
-	if (zzbCanCSL ||
-	     (zzNewRotation.Roll == 0 && zzNewRotation == ViewRotation &&
-	      (WarpZoneInfo(Region.Zone) != None || WarpZoneInfo(HeadRegion.Zone) != None || WarpZoneInfo(FootRegion.Zone) != None)))
-	{
-		zzViewRotation      = zzNewRotation; // mm..
-		ViewRotation		= zzNewRotation; // mm.. even more !
-		If ( (zzViewRotation.Pitch > RotationRate.Pitch) && (zzViewRotation.Pitch < 65536 - RotationRate.Pitch) )
-		{
-			If (zzViewRotation.Pitch < 32768)
-				zzNewRotation.Pitch = RotationRate.Pitch;
-			else
-				zzNewRotation.Pitch = 65536 - RotationRate.Pitch;
-		}
-		zzNewRotation.Roll  = 0;
-		SetRotation( zzNewRotation );
-		SetLocation( zzNewLocation );
-}
-
-
 event ReceiveLocalizedMessage( class<LocalMessage> Message, optional int Sw, optional PlayerReplicationInfo RelatedPRI_1, optional PlayerReplicationInfo RelatedPRI_2, optional Object OptionalObject )
 {
 	if (Message == class'CTFMessage2' && PureFlag(PlayerReplicationInfo.HasFlag) != None)
