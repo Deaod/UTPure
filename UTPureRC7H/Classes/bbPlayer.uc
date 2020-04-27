@@ -371,19 +371,6 @@ event PlayerTick( float Time )
 	zzTick = Time;
 }
 
-function ClientSetRotation( rotator zzNewRotation )
-{
-    // TNSe: I don't like this, it's waaaaaaaay too easy to bytehack.
-
-	if (zzbCanCSL)
-	{
-		ViewRotation		= zzNewRotation;
-		zzNewRotation.Pitch = 0;
-		zzNewRotation.Roll  = 0;
-		SetRotation( zzNewRotation );
-	}
-}
-
 simulated function xxClientDemoMessage(string zzS)
 {
 	if (zzS == zzPrevClientMessage)
