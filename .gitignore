@@ -1,0 +1,10 @@
+/Documentation/**
+/Help/**
+/Maps/**
+/Music/**
+/Sounds/**
+/System/**
+/Textures/**
+/Web/**
+*.sublime-project
+*.sublime-workspace
