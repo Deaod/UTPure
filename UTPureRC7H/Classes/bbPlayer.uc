@@ -300,7 +300,7 @@ event Possess()
 		if (class'UTPlayerClientWindow'.default.PlayerSetupClass != class'UTPureSetupScrollClient')
 			class'UTPlayerClientWindow'.default.PlayerSetupClass = class'UTPureSetupScrollClient';
 		// This blocks silly set commands by kicking player, after resetting them.
-		if (	Class'ZoneInfo'.Default.AmbientBrightness != 0		||
+		if (Class'ZoneInfo'.Default.AmbientBrightness != 0		||
 			Class'ZoneInfo'.Default.AmbientSaturation != 255	||
 			Class'LevelInfo'.Default.AmbientBrightness != 0		||
 			Class'LevelInfo'.Default.AmbientSaturation != 255	||
@@ -315,9 +315,9 @@ event Possess()
 			Class'WaterZone'.Default.AmbientSaturation = 255;
 			xxServerCheater(chr(90)$chr(68));		// ZD
 		}
-		if (	Class'WaterTexture'.Default.bInvisible		||
-			Class'Actor'.Default.Fatness != 128		||
-			Class'PlayerShadow'.Default.DrawScale != 0.5	||
+		if (Class'WaterTexture'.Default.bInvisible       ||
+			Class'Actor'.Default.Fatness != 128          ||
+			Class'PlayerShadow'.Default.DrawScale != 0.5 ||
 			Class'PlayerShadow'.Default.Texture != Texture'Botpack.EnergyMark')
 		{
 			Class'WaterTexture'.Default.bInvisible = False;
