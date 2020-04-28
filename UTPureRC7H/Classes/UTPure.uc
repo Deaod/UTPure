@@ -199,7 +199,7 @@ function PreBeginPlay()
 	else if (zzDMP.HUDType == Class'ChallengeHUD')
 		zzDMP.HUDType = Class'PureDMHUD';
 
-	zzSI = Class<ChallengeHUD>(zzDMP.HUDType).Default.ServerInfoClass;	
+	zzSI = Class<ChallengeHUD>(zzDMP.HUDType).Default.ServerInfoClass;
 }
 
 function PostBeginPlay()
@@ -238,7 +238,7 @@ function PostBeginPlay()
 		sTag = "[PURE]";
 	else
 		sTag = "[PWND]";
-	
+
 	// Setup name advertising
 	if ( (Advertise>0)  && (Level.NetMode != NM_Standalone) && (instr(zzDMP.GameReplicationInfo.ServerName,sTag)==-1) )
 	{
@@ -247,15 +247,15 @@ function PostBeginPlay()
 		else if (Advertise==2)
 			zzDMP.GameReplicationInfo.ServerName = zzDMP.GameReplicationInfo.ServerName@sTag;
 	}
-	
+
 	for (i = 0; PlayerPacks[i] != ""; i++);
 	ppCnt = i;
-		
+
 	ServPacks = Caps(ConsoleCommand("get engine.gameengine serverpackages"));
 	// Create the ModifyLoginHandler chain list
 	for (i = 0; PlayerPacks[i] != ""; i++)
 	{
-		
+
 		// Verify that the PlayerPack Package is in ServerPackages
 		curMLHPack = PlayerPacks[i]$"Handler"$ThisVer;
 		fullpack = curMLHPack$"."$PlayerPacks[i]$"LoginHandler";
@@ -285,10 +285,10 @@ function PostBeginPlay()
 	}
 	zzDMP.RegisterMessageMutator(self);
 	xxlog("");
-	xxlog(" Protection is Active!");	
+	xxlog(" Protection is Active!");
 	xxlog("");
 	xxlog("###############################");
-	
+
 	// Tell each ModifyLoginHandler They've been accepted
 	for (MLH = NextMLH; MLH != None; MLH = MLH.NextMLH)
 		MLH.Accepted();
@@ -310,10 +310,10 @@ function PostBeginPlay()
 
 	if (bAutoPause && zzDMP.bTeamGame && zzDMP.bTournament)
 		zzAutoPauser = Spawn(Class'PureAutoPause');
-	
-	if (bUseClickboard && zzDMP.bTournament) 
+
+	if (bUseClickboard && zzDMP.bTournament)
 		SetupClickBoard();
-	
+
 	if (ImprovedHUD == 2 && zzDMP.bTeamGame)
 		xxReplaceTeamInfo();						// Do really nasty replacement of TeamInfo with Pures own.
 
@@ -329,7 +329,7 @@ function SetupClickBoard()
 
 	foreach AllActors(class'PureClickBoard', PCB)
 		return;
-		
+
 	PCB = Level.Spawn(Class'PureClickBoard');
 	if (PCB != None)
 	{
@@ -346,7 +346,7 @@ function xxReplaceTeamInfo()
 	zzTGP = TeamGamePlus(zzDMP);
 	if (zzTGP == None)
 		return;
-	
+
 	// Copied directly from TeamGamePlus.PostBeginPlay.
 	for (zzi = 0; zzi < 4; zzi++)
 	{
@@ -548,9 +548,9 @@ function xxResetGame()			// Resets the current game to make sure nothing bad hap
 
 	ForEach Level.AllActors(Class'TeamInfo', zzTI)
 	{
-		zzTI.Score = 0;		
+		zzTI.Score = 0;
 	}
-	
+
 	zzDMP.bFirstBlood = False;
 	zzbWarmupPlayers = False;
 }
@@ -565,7 +565,7 @@ function ModifyLogin(out class<playerpawn> SpawnClass, out string Portal, out st
 
 	if (SpawnClass == None)
 		SpawnClass = Class'TMale1';
-	
+
 	// Quick Fix: Turn Commanders into our Spectator class.
 	if (SpawnClass == class'Commander' || SpawnClass == class'Spectator' || SpawnClass == class'CHSpectator')
 	{
@@ -573,10 +573,10 @@ function ModifyLogin(out class<playerpawn> SpawnClass, out string Portal, out st
 			SpawnClass = class'bbCHCoach';
 		else
 			SpawnClass = class'bbCHSpectator';
-	}	
-	
+	}
+
 	origSC = SpawnClass;
-	
+
 	if ( NextMutator != None )
 		NextMutator.ModifyLogin(SpawnClass, Portal, Options);
 
@@ -589,13 +589,13 @@ function ModifyLogin(out class<playerpawn> SpawnClass, out string Portal, out st
 
 	if (SpawnClass == class'TBoss')
 		SpawnClass = class'bbTBoss';
-	else if (SpawnClass == class'TMale2') 
+	else if (SpawnClass == class'TMale2')
 		SpawnClass = class'bbTMale2';
-	else if (SpawnClass == class'TFemale1') 
+	else if (SpawnClass == class'TFemale1')
 		SpawnClass = class'bbTFemale1';
-	else if (SpawnClass == class'TFemale2') 
+	else if (SpawnClass == class'TFemale2')
 		SpawnClass = class'bbTFemale2';
-	else if (SpawnClass == class'TMale1') 
+	else if (SpawnClass == class'TMale1')
 		SpawnClass = class'bbTMale1';
 
 	specCls = class<Spectator>(SpawnClass);
@@ -618,11 +618,10 @@ function ModifyPlayer(Pawn Other)
 		}
 		else if (zzP != None)
 		{
-			zzP.zzViewRotation = Other.ViewRotation;
 			zzP.zzTrackFOV = TrackFOV;
 			zzP.zzCVDelay = CenterViewDelay;
 			zzP.zzCVDeny = !bAllowCenterView;
-       			zzP.zzbNoMultiWeapon = !bAllowMultiWeapon;
+   			zzP.zzbNoMultiWeapon = !bAllowMultiWeapon;
 			zzP.zzShowClick = false;
 			zzP.zzForceSettingsLevel = ForceSettingsLevel;
 			zzP.zzbForceDemo = bForceDemo;
@@ -658,7 +657,7 @@ function bool MutatorBroadcastMessage( Actor Sender,Pawn Receiver, out coerce st
 	local Actor A;
 	local bool legalspec;
 	A = Sender;
-	
+
 	// Check for a cheater
 	if (Receiver.IsA('bbPlayer') && bbPlayer(Receiver).zzbBadGuy)
 	{
@@ -667,7 +666,7 @@ function bool MutatorBroadcastMessage( Actor Sender,Pawn Receiver, out coerce st
 		Receiver.Destroy();
 		return false;
 	}
-	
+
 	// Hack ... for AdminLogout() going in PHYS_Walking while state is 'PlayerWaiting'
 	If (A.IsA('GameInfo') && Receiver != None && Receiver.PlayerReplicationInfo != None
 			&& (Receiver.PlayerReplicationInfo.PlayerName@"gave up administrator abilities.") == Msg
@@ -675,20 +674,20 @@ function bool MutatorBroadcastMessage( Actor Sender,Pawn Receiver, out coerce st
 	{
 		Receiver.GotoState('');
 		Receiver.GotoState('PlayerWaiting');
-	} 
-	
+	}
+
 	while (!A.isa('Pawn') && A.Owner != None)
 		A=A.Owner;
 
 	if (A.isa('spectator'))
-		legalspec=((left(msg,len(spectator(A).playerreplicationinfo.playername)+1))==(spectator(A).playerreplicationinfo.playername$":") || A.IsA('MessagingSpectator'));		
+		legalspec=((left(msg,len(spectator(A).playerreplicationinfo.playername)+1))==(spectator(A).playerreplicationinfo.playername$":") || A.IsA('MessagingSpectator'));
 
 	if (legalspec)
-		 legalspec=(type=='Event');                
-		 
+		 legalspec=(type=='Event');
+
 	if (A.isa('Pawn') && !legalspec)
 		return false;
-                        
+
 	return Super.MutatorBroadcastMessage( Sender,Receiver, Msg, bBeep );
 }
 
@@ -699,12 +698,12 @@ function bool MutatorBroadcastLocalizedMessage( Actor Sender, Pawn Receiver, out
 {
 	local Actor A;
 	A = Sender;
-	while (!A.isa('Pawn') && A.Owner != None) 
+	while (!A.isa('Pawn') && A.Owner != None)
 	  A=A.Owner;
 
 	if (A.isa('Pawn'))
 		return false;
-	
+
 	return Super.MutatorBroadcastLocalizedMessage( Sender, Receiver, Message, Switch, RelatedPRI_1, RelatedPRI_2, OptionalObject );
 
 } // MutatorBroadcastLocalizedMessage
@@ -1107,7 +1106,7 @@ function Mutate(string MutateString, PlayerPawn Sender)
 		xxLog(Sender.PlayerReplicationInfo.PlayerName@"used ConsoleCommand:"@zzs);
 	}
 */
-	   
+
 	if ( NextMutator != None )
 		NextMutator.Mutate(MutateString, Sender);
 
@@ -1117,7 +1116,7 @@ function Mutate(string MutateString, PlayerPawn Sender)
 // NextTeam - Allow a player to switch team (DB Request)
 // ==================================================================================
 // This is where i would like to put my personal contribution to the project. See
-// it as the big brother of EZTeams. 
+// it as the big brother of EZTeams.
 
 function NextTeam(PlayerPawn zzp)
 {
@@ -1134,11 +1133,11 @@ function NextTeam(PlayerPawn zzp)
 
 		if (nWantedTeam >= tgp.MaxTeams)
 			nWantedTeam = 0;
-			
+
 		zzp.ChangeTeam(nWantedTeam);
 		if (zzp.PlayerReplicationInfo.Team != zzOldTeam)
 		{
-			// View from self if changing team is valid 
+			// View from self if changing team is valid
 			if (zzp.ViewTarget != None)
 			{
 				zzp.bBehindView = false;
@@ -1154,7 +1153,7 @@ function NextTeam(PlayerPawn zzp)
 // ==================================================================================
 // This is where i would like to put my personal contribution to the project. See
 // it as the big brother of EZTeams. I will put code if allowed to.
-// 
+//
 function MakeTeamsEven(PlayerPawn zzp)
 {
 	local int zzOldTeam, lowTeam, i, lowTeamSize;
@@ -1178,7 +1177,7 @@ function MakeTeamsEven(PlayerPawn zzp)
 		zzOldTeam = zzp.PlayerReplicationInfo.Team;
 		if ((tgp.Teams[zzOldTeam].Size - lowTeamSize) < 2)
 			return;
-		
+
 		Level.Game.ChangeTeam(zzp, lowTeam);
 		if (zzp.PlayerReplicationInfo.Team != zzOldTeam )
 		{
@@ -1214,10 +1213,10 @@ function SetTeam(PlayerPawn zzp, string zzsteam)
 			zzteam = 3;
 		else
 			zzbvalid = false;
-		
+
 		if (!zzbvalid && zzteam >= TeamGamePlus(zzDMP).MaxTeams)
 			zzbvalid = false;
-		
+
 		if (!zzbvalid)
 		{
 			zzp.ClientMessage("Wrong team selected : "$zzsteam);
@@ -1229,7 +1228,7 @@ function SetTeam(PlayerPawn zzp, string zzsteam)
 		zzp.ChangeTeam(zzteam);
 		if (zzp.PlayerReplicationInfo.Team != zzOldTeam)
 		{
-			// View from self if changing team is valid 
+			// View from self if changing team is valid
 			if (zzp.ViewTarget != None)
 			{
 				zzp.bBehindView = false;
@@ -1248,25 +1247,25 @@ function xxDied(pawn zzp)
 	local actor zzA;
 
 	if (xxGameIsPlaying())
-	{		
+	{
 		zzp.Health = Min(0, zzp.Health);
 		for ( zzOtherPawn=Level.PawnList; zzOtherPawn!=None; zzOtherPawn=zzOtherPawn.nextPawn )
 			zzOtherPawn.Killed(zzp, zzp, '');
-	
+
 		if( zzp.Event != '' )
 			foreach AllActors( class 'Actor', zzA, zzp.Event )
 				zzA.Trigger( zzp, None );
-			
+
 		// Stop any spree's players had
 		zzp.Spree = 0;
-		
+
 		// Make sure flag is dropped
 		if (zzp.PlayerReplicationInfo.HasFlag != None)
 			CTFFlag(zzp.PlayerReplicationInfo.HasFlag).Drop(0.5 * zzp.Velocity);
 
 		// Discard all inventory
 		Level.Game.DiscardInventory(zzp);
-		
+
 		Velocity.Z *= 1.3;
 		if ( zzp.Gibbed('Suicided') )
 		{
@@ -1277,7 +1276,7 @@ function xxDied(pawn zzp)
 
 		if ( zzp.RemoteRole == ROLE_AutonomousProxy )
 			zzp.ClientDying('Suicided', zzp.Location);
-		
+
 		zzp.GotoState('Dying');
 	}
 }
@@ -1297,7 +1296,7 @@ function bool xxGameIsPlaying()
 // ==================================================================================
 function bool xxWaitingForTournament()
 {
-	// Determine if match has started or ended (server side only) 
+	// Determine if match has started or ended (server side only)
 	if (zzDMP.bRequireReady && (zzDMP.CountDown > 0))
 			return true;
 	return false;

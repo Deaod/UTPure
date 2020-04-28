@@ -85,7 +85,6 @@ var bool	zzbNoMultiWeapon;	// Server-Side only! tells if multiweapon bug can be 
 var float	zzRealMaxShake;		// The REAL MaxShake!
 
 // Stuff
-var rotator	zzViewRotation;		// Our special View Rotation
 var rotator	zzLastVR;		// The rotation after previous input.
 var float	zzDesiredFOV;		// Needed ?
 var float	zzOrigFOV;		// Original FOV for TrackFOV = 1
@@ -154,10 +153,6 @@ var int zzKickReady;
 var int zzAdminLoginTries;
 var int zzOldNetspeed,zzNetspeedChanges;
 
-// MD5 Things
-var bool zzbDidMD5;			// True when MD5 checks are completed.
-var bool zzbMD5RequestSent;		// Server side, to decide if requests for MD5 has been sent.
-
 // Fixing demo visual stuff
 var int zzRepVRYaw, zzRepVRPitch;
 var float zzRepVREye;
@@ -195,7 +190,7 @@ replication
 	unreliable if( bNetOwner && ROLE == ROLE_Authority)
 		zzTrackFOV, zzCVDeny, zzCVDelay, zzShowClick, zzMinimumNetspeed,
 		zzWaitTime,zzAntiTimerList,zzAntiTimerListCount,zzAntiTimerListState,
-		zzWeapon, zzbDidMD5, zzStat;
+		zzWeapon, zzStat;
 
 	// Server->Client
 	reliable if ( bNetOwner && ROLE == ROLE_Authority )
@@ -205,7 +200,7 @@ replication
 
 	//Server->Client function reliable.. no demo propogate! .. bNetOwner? ...
 	reliable if ( bNetOwner && ROLE == ROLE_Authority && !bDemoRecording)
-		xxCheatFound,xxClientMD5,xxClientSet,xxClientDoScreenshot,xxClientDoEndShot,xxClientConsole,
+		xxCheatFound,xxClientSet,xxClientDoScreenshot,xxClientDoEndShot,xxClientConsole,
 		xxClientKeys,xxClientReadINT;
 
 	// Client->Server
@@ -216,7 +211,7 @@ replication
 
 	// Client->Server
 	reliable if ( ROLE < ROLE_Authority)
-		xxServerCheckMutator,xxServerTestMD5,xxServerSetNetCode,xxSet,
+		xxServerCheckMutator,xxServerSetNetCode,xxSet,
 		xxServerReceiveMenuItems,xxServerSetNoRevert,xxServerSetReadyToPlay,Hold,Go,
 		xxServerSetHitSounds, xxServerSetTeamInfo, ShowStats,
 		xxServerAckScreenshot, xxServerReceiveConsole, xxServerReceiveKeys, xxServerReceiveINT,
@@ -395,7 +390,6 @@ event Trigger( Actor zzOther, Pawn zzEventInstigator )
 		zzTP = None;
 		Tag = '';
 		// Be nice and call std event
-		zzViewRotation = Rotation;
 		ViewRotation = Rotation;
 		if (zzTPE != '')
 			foreach AllActors( class 'Actor', zzA, zzTPE )
@@ -406,55 +400,7 @@ event Trigger( Actor zzOther, Pawn zzEventInstigator )
 
 function rotator GR()
 {
-	return zzViewRotation;
-}
-
-event UpdateEyeHeight(float zzDeltaTime)
-{
-	local float zzsmooth, zzbound;
-
-	// smooth up/down stairs
-	If( (Physics==PHYS_Walking) && !bJustLanded )
-	{
-		zzsmooth = FMin(1.0, 10.0 * zzDeltaTime/Level.TimeDilation);
-		EyeHeight = (EyeHeight - Location.Z + OldLocation.Z) * (1 - zzsmooth) + ( ShakeVert + BaseEyeHeight) * zzsmooth;
-		zzbound = -0.5 * CollisionHeight;
-		if (EyeHeight < zzbound)
-			EyeHeight = zzbound;
-		else
-		{
-			zzbound = CollisionHeight + FClamp((OldLocation.Z - Location.Z), 0.0, MaxStepHeight);
-			if ( EyeHeight > zzbound )
-				EyeHeight = zzbound;
-		}
-	}
-	else
-	{
-		zzsmooth = FClamp(10.0 * zzDeltaTime/Level.TimeDilation, 0.35,1.0);
-		bJustLanded = false;
-		EyeHeight = EyeHeight * ( 1 - zzsmooth) + (BaseEyeHeight + ShakeVert) * zzsmooth;
-	}
-
-	// teleporters affect your FOV, so adjust it back down
-	if ( FOVAngle != DesiredFOV )
-	{
-		if ( FOVAngle > DesiredFOV )
-			FOVAngle = FOVAngle - FMax(7, 0.9 * zzDeltaTime * (FOVAngle - DesiredFOV));
-		else
-			FOVAngle = FOVAngle - FMin(-7, 0.9 * zzDeltaTime * (FOVAngle - DesiredFOV));
-		if ( Abs(FOVAngle - DesiredFOV) <= 10 )
-			FOVAngle = DesiredFOV;
-	}
-
-	// adjust FOV for weapon zooming
-	if ( bZooming )
-	{
-		ZoomLevel += zzDeltaTime;
-		if (ZoomLevel > 0.9)
-			ZoomLevel = 0.9;
-		DesiredFOV = FClamp(90.0 - (ZoomLevel * 88.0), 1, 170);
-	}
-	xxCheckFOV();
+	return ViewRotation;
 }
 
 function xxCheckFOV()
@@ -489,171 +435,6 @@ function xxCheckFOV()
 	}
 }
 
-event PlayerInput( float DeltaTime )
-{
-	local float SmoothTime, FOVScale, MouseScale, AbsSmoothX, AbsSmoothY, MouseTime;
-
-	if ( bShowMenu && (zzMyHud != None) )
-	{
-		// clear inputs
-		bEdgeForward = false;
-		bEdgeBack = false;
-		bEdgeLeft = false;
-		bEdgeRight = false;
-		bWasForward = false;
-		bWasBack = false;
-		bWasLeft = false;
-		bWasRight = false;
-		aStrafe = 0;
-		aTurn = 0;
-		aForward = 0;
-		aLookUp = 0;
-		return;
-	}
-
-	// Check for Dodge move
-	// flag transitions
-	bEdgeForward = (bWasForward ^^ (aBaseY > 0));
-	bEdgeBack = (bWasBack ^^ (aBaseY < 0));
-	bEdgeLeft = (bWasLeft ^^ (aStrafe > 0));
-	bEdgeRight = (bWasRight ^^ (aStrafe < 0));
-	bWasForward = (aBaseY > 0);
-	bWasBack = (aBaseY < 0);
-	bWasLeft = (aStrafe > 0);
-	bWasRight = (aStrafe < 0);
-
-	// Smooth and amplify mouse movement
-	SmoothTime = FMin(0.2, 3 * DeltaTime * Level.TimeDilation);
-	FOVScale = DesiredFOV * 0.01111;
-	MouseScale = MouseSensitivity * FOVScale;
-
-	aMouseX *= MouseScale;
-	aMouseY *= MouseScale;
-
-    //************************************************************************
-
-	AbsSmoothX = SmoothMouseX;
-	AbsSmoothY = SmoothMouseY;
-	MouseTime = (Level.TimeSeconds - MouseZeroTime)/Level.TimeDilation;
-	if ( bMaxMouseSmoothing && (aMouseX == 0) && (MouseTime < MouseSmoothThreshold) )
-	{
-		SmoothMouseX = 0.5 * (MouseSmoothThreshold - MouseTime) * AbsSmoothX/MouseSmoothThreshold;
-		BorrowedMouseX += SmoothMouseX;
-	}
-	else
-	{
-		if ( (SmoothMouseX == 0) || (aMouseX == 0)
-				|| ((SmoothMouseX > 0) != (aMouseX > 0)) )
-		{
-			SmoothMouseX = aMouseX;
-			BorrowedMouseX = 0;
-		}
-		else
-		{
-			SmoothMouseX = 0.5 * (SmoothMouseX + aMouseX - BorrowedMouseX);
-			if ( (SmoothMouseX > 0) != (aMouseX > 0) )
-			{
-				if ( AMouseX > 0 )
-					SmoothMouseX = 1;
-				else
-					SmoothMouseX = -1;
-			}
-			BorrowedMouseX = SmoothMouseX - aMouseX;
-		}
-		AbsSmoothX = SmoothMouseX;
-	}
-	if ( bMaxMouseSmoothing && (aMouseY == 0) && (MouseTime < MouseSmoothThreshold) )
-	{
-		SmoothMouseY = 0.5 * (MouseSmoothThreshold - MouseTime) * AbsSmoothY/MouseSmoothThreshold;
-		BorrowedMouseY += SmoothMouseY;
-	}
-	else
-	{
-		if ( (SmoothMouseY == 0) || (aMouseY == 0)
-				|| ((SmoothMouseY > 0) != (aMouseY > 0)) )
-		{
-			SmoothMouseY = aMouseY;
-			BorrowedMouseY = 0;
-		}
-		else
-		{
-			SmoothMouseY = 0.5 * (SmoothMouseY + aMouseY - BorrowedMouseY);
-			if ( (SmoothMouseY > 0) != (aMouseY > 0) )
-			{
-				if ( AMouseY > 0 )
-					SmoothMouseY = 1;
-				else
-					SmoothMouseY = -1;
-			}
-			BorrowedMouseY = SmoothMouseY - aMouseY;
-		}
-		AbsSmoothY = SmoothMouseY;
-	}
-	if ( (aMouseX != 0) || (aMouseY != 0) )
-		MouseZeroTime = Level.TimeSeconds;
-
-	// adjust keyboard and joystick movements
-	aLookUp *= FOVScale;
-	aTurn   *= FOVScale;
-
-	// Remap raw x-axis movement.
-	if( bStrafe!=0 )
-	{
-		// Strafe.
-		aStrafe += aBaseX + SmoothMouseX;
-		aBaseX   = 0;
-	}
-	else
-	{
-		// Forward.
-		aTurn  += aBaseX * FOVScale + SmoothMouseX;
-		aBaseX  = 0;
-	}
-
-	// Remap mouse y-axis movement.
-	if( (bStrafe == 0) && (bAlwaysMouseLook || (bLook!=0)) )
-	{
-		// Look up/down.
-		if ( bInvertMouse )
-			aLookUp -= SmoothMouseY;
-		else
-			aLookUp += SmoothMouseY;
-	}
-	else
-	{
-		// Move forward/backward.
-		aForward += SmoothMouseY;
-	}
-	SmoothMouseX = AbsSmoothX;
-	SmoothMouseY = AbsSmoothY;
-
-	if ( bSnapLevel != 0 && !bAlwaysMouseLook && !zzCVDeny && (Level.TimeSeconds - zzCVTO) > zzCVDelay )
-	{
-		zzCVTO = Level.TimeSeconds;
-		bCenterView = true;
-		bKeyboardLook = false;
-	}
-	else if (aLookUp != 0)
-	{
-		bCenterView = false;
-		bKeyboardLook = true;
-	}
-
-	// Remap other y-axis movement.
-	if ( bFreeLook != 0 )
-	{
-		bKeyboardLook = true;
-		aLookUp += 0.5 * aBaseY * FOVScale;
-	}
-	else
-		aForward += aBaseY;
-
-	aBaseY = 0;
-
-	// Handle walking.
-	HandleWalking();
-}
-
 function xxServerReceiveMenuItems(string zzMenuItem, bool zzbLast)
 {
 	Mutate("PMI"@zzMenuItem@byte(zzbLast));
@@ -685,148 +466,6 @@ exec function ThrowWeapon()
 	TossWeapon();
 	if ( Weapon == None )
 		SwitchToBestWeapon();
-}
-
-function xxCalcBehindView(out vector CameraLocation, out rotator CameraRotation, float Dist)
-{
-	local vector View,HitLocation,HitNormal;
-	local float ViewDist;
-
-	CameraRotation = zzViewRotation;
-	View = vect(1,0,0) >> CameraRotation;
-	if( Trace( HitLocation, HitNormal, CameraLocation - (Dist + 30) * vector(CameraRotation), CameraLocation ) != None )
-		ViewDist = FMin( (CameraLocation - HitLocation) Dot View, Dist );
-	else
-		ViewDist = Dist;
-	CameraLocation -= (ViewDist - 30) * View;
-}
-
-event PlayerCalcView(out actor ViewActor, out vector CameraLocation, out rotator CameraRotation )
-{
-	local Pawn PTarget;
-	local bbPlayer bbTarg;
-
-
-	if (zzInfoThing != None)
-			zzInfoThing.zzPlayerCalcViewCalls--;
-
-	if ( ViewTarget != None )
-	{
-		ViewActor = ViewTarget;
-		CameraLocation = ViewTarget.Location;
-		CameraRotation = ViewTarget.Rotation;
-		PTarget = Pawn(ViewTarget);
-		bbTarg = bbPlayer(ViewTarget);
-		if ( PTarget != None )
-		{
-			if ( Level.NetMode == NM_Client )
-			{
-				if ( PTarget.bIsPlayer )
-				{
-					if (bbTarg != None)
-						bbTarg.zzViewRotation = TargetViewRotation;
-					PTarget.ViewRotation = TargetViewRotation;
-				}
-				PTarget.EyeHeight = TargetEyeHeight;
-				if ( PTarget.Weapon != None )
-					PTarget.Weapon.PlayerViewOffset = TargetWeaponViewOffset;
-			}
-			if ( PTarget.bIsPlayer )
-				CameraRotation = PTarget.ViewRotation;
-			if ( !bBehindView )
-				CameraLocation.Z += PTarget.EyeHeight;
-		}
-		if ( bBehindView )
-			xxCalcBehindView(CameraLocation, CameraRotation, 180);
-		return;
-	}
-
-	ViewActor = Self;
-	CameraLocation = Location;
-
-	if( bBehindView ) //up and behind
-		xxCalcBehindView(CameraLocation, CameraRotation, 150);
-	else
-	{
-		if (zzbRepVRData)
-		{	// Received data through demo replication.
-			CameraRotation.Yaw = zzRepVRYaw;
-			CameraRotation.Pitch = zzRepVRPitch;
-			CameraRotation.Roll = 0;
-			EyeHeight = zzRepVREye;
-		}
-		else if (zzInfoThing != None && zzInfoThing.zzPlayerCalcViewCalls == zzNull)
-			CameraRotation = zzViewRotation;
-		else
-			CameraRotation = ViewRotation;
-		CameraLocation.Z += EyeHeight;
-		CameraLocation += WalkBob;
-	}
-}
-
-function ViewShake(float DeltaTime)
-{
-	if (shaketimer > 0.0) //shake view
-	{
-		shaketimer -= DeltaTime;
-		if ( verttimer == 0 )
-		{
-			verttimer = 0.1;
-			ShakeVert = -1.1 * maxshake;
-		}
-		else
-		{
-			verttimer -= DeltaTime;
-			if ( verttimer < 0 )
-			{
-				verttimer = 0.2 * FRand();
-				shakeVert = (2 * FRand() - 1) * maxshake;
-			}
-		}
-		zzViewRotation.Roll = zzViewRotation.Roll & 65535;
-		if (bShakeDir)
-		{
-			zzViewRotation.Roll += Int( 10 * shakemag * FMin(0.1, DeltaTime));
-			bShakeDir = (zzViewRotation.Roll > 32768) || (zzViewRotation.Roll < (0.5 + FRand()) * shakemag);
-			if ( (zzViewRotation.Roll < 32768) && (zzViewRotation.Roll > 1.3 * shakemag) )
-			{
-				zzViewRotation.Roll = 1.3 * shakemag;
-				bShakeDir = false;
-			}
-			else if (FRand() < 3 * DeltaTime)
-				bShakeDir = !bShakeDir;
-		}
-		else
-		{
-			zzViewRotation.Roll -= Int( 10 * shakemag * FMin(0.1, DeltaTime));
-			bShakeDir = (zzViewRotation.Roll > 32768) && (zzViewRotation.Roll < 65535 - (0.5 + FRand()) * shakemag);
-			if ( (zzViewRotation.Roll > 32768) && (zzViewRotation.Roll < 65535 - 1.3 * shakemag) )
-			{
-				zzViewRotation.Roll = 65535 - 1.3 * shakemag;
-				bShakeDir = true;
-			}
-			else if (FRand() < 3 * DeltaTime)
-				bShakeDir = !bShakeDir;
-		}
-	}
-	else
-	{
-		ShakeVert = 0;
-		zzViewRotation.Roll = zzViewRotation.Roll & 65535;
-		if (zzViewRotation.Roll < 32768)
-		{
-			if ( zzViewRotation.Roll > 0 )
-				zzViewRotation.Roll = Max(0, zzViewRotation.Roll - (Max(zzViewRotation.Roll,500) * 10 * FMin(0.1,DeltaTime)));
-		}
-		else
-		{
-			zzViewRotation.Roll += ((65536 - Max(500,zzViewRotation.Roll)) * 10 * FMin(0.1,DeltaTime));
-			if ( zzViewRotation.Roll > 65534 )
-				zzViewRotation.Roll = 0;
-		}
-	}
-	ViewRotation = RotRand(False);
-	ViewRotation.Roll = zzViewRotation.Roll;
 }
 
 function xxReplicateVRToDemo(int zzYaw, int zzPitch, float zzEye)
@@ -1406,7 +1045,6 @@ state PlayerWaking
 	{
 		if ( bWokeUp )
 		{
-			zzViewRotation.Pitch = -500;
 			ViewRotation.Pitch = -500;
 			SetTimer(0, false);
 			return;
@@ -1440,11 +1078,11 @@ state Dying
 		//fixme - try to pick view with killer visible
 		//fixme - also try varying starting pitch
 
-		zzViewRotation.Pitch = 56000;
+		ViewRotation.Pitch = 56000;
 		tries = 0;
 		besttry = 0;
 		bestdist = 0.0;
-		startYaw = zzViewRotation.Yaw;
+		startYaw = ViewRotation.Yaw;
 
 		for (tries=0; tries<16; tries++)
 		{
@@ -1456,13 +1094,12 @@ state Dying
 				bestdist = newdist;
 				besttry = tries;
 			}
-			zzViewRotation.Yaw += 4096;
+			ViewRotation.Yaw += 4096;
 		}
 		if (zzInfoThing != None)
 			zzInfoThing.zzPlayerCalcViewCalls = 1;
 
-		zzViewRotation.Yaw = startYaw + besttry * 4096;
-		ViewRotation.Yaw = zzViewRotation.Yaw;
+		ViewRotation.Yaw = startYaw + besttry * 4096;
 	}
 }
 
@@ -1489,11 +1126,11 @@ ignores SeePlayer, HearNoise, KilledBy, Bump, HitWall, HeadZoneChange, FootZoneC
 		local int startYaw;
 		local actor ViewActor;
 
-		zzViewRotation.Pitch = 56000;
+		ViewRotation.Pitch = 56000;
 		tries = 0;
 		besttry = 0;
 		bestdist = 0.0;
-		startYaw = zzViewRotation.Yaw;
+		startYaw = ViewRotation.Yaw;
 
 		for (tries=0; tries<16; tries++)
 		{
@@ -1508,12 +1145,12 @@ ignores SeePlayer, HearNoise, KilledBy, Bump, HitWall, HeadZoneChange, FootZoneC
 				bestdist = newdist;
 				besttry = tries;
 			}
-			zzViewRotation.Yaw += 4096;
+			ViewRotation.Yaw += 4096;
 		}
 		if (zzInfoThing != None)
 			zzInfoThing.zzPlayerCalcViewCalls = 1;
 
-		zzViewRotation.Yaw = startYaw + besttry * 4096;
+		ViewRotation.Yaw = startYaw + besttry * 4096;
 	}
 }
 
@@ -1541,11 +1178,11 @@ function PlayWaiting()
 	else
 	{
 		BaseEyeHeight = Default.BaseEyeHeight;
-		zzViewRotation.Pitch = zzViewRotation.Pitch & 65535;
-		If ( (zzViewRotation.Pitch > RotationRate.Pitch)
-			&& (zzViewRotation.Pitch < 65536 - RotationRate.Pitch) )
+		ViewRotation.Pitch = ViewRotation.Pitch & 65535;
+		If ( (ViewRotation.Pitch > RotationRate.Pitch)
+			&& (ViewRotation.Pitch < 65536 - RotationRate.Pitch) )
 		{
-			If (zzViewRotation.Pitch < 32768)
+			If (ViewRotation.Pitch < 32768)
 			{
 				if ( (Weapon == None) || (Weapon.Mass < 20) )
 					TweenAnim('AimUpSm', 0.3);
@@ -1625,7 +1262,7 @@ function PlayHit(float Damage, vector HitLocation, name damageType, vector Momen
 		if (damageType == 'Drowned')
 		{
 			bub = spawn(class 'Bubble1',,, Location
-				+ 0.7 * CollisionRadius * vector(zzViewRotation) + 0.3 * EyeHeight * vect(0,0,1));
+				+ 0.7 * CollisionRadius * vector(ViewRotation) + 0.3 * EyeHeight * vect(0,0,1));
 			if (bub != None)
 				bub.DrawScale = FRand()*0.06+0.04;
 		}
@@ -1687,22 +1324,6 @@ function ClientShake(vector shake)
 ////////////////////////////
 // CRC Checks on UTPure Itself
 ////////////////////////////
-
-//Server asks Client for a CRC check (unreliable... called each servermove) <-- usaar = funney, reliable, called once
-simulated function xxClientMD5(string zzPackage, string zzInit)
-{
-	xxServerTestMD5("", Level.ComputerName); //PackageMD5(zzPackage, zzInit));
-}
-
-function xxServerTestMD5(string zzClientMD5, string zzPCName)
-{
-	local string zzs;
-	zzComputerName = zzPCName;
-	zzs = GetPlayerNetworkAddress();
-	zzs = Left(zzs,InStr(zzs,":"));
-	zzUTPure.xxLogDate("Validated:"@PlayerReplicationInfo.PlayerName$","@zzComputerName$"."$zzs, Level);
-	zzbDidMD5 = True;
-}
 
 function xxShowItems()
 {
@@ -1777,6 +1398,14 @@ function xxPlayerTickEvents()
 		if (!zzbDemoRecording && zzbGameStarted && (zzbForceDemo || bDoDemo))
 			xxClientDemoRec();
 	}
+
+    if (zzCVTO > 0.0)
+        zzCVTO -= zzTick;
+
+    if (zzCVDeny || zzCVTO > 0.0)
+        bCenterView = false;
+    else if (bCenterView)
+        zzCVTO = zzCVDelay;
 }
 
 event PreRender( canvas zzCanvas )
@@ -1790,7 +1419,7 @@ event PreRender( canvas zzCanvas )
 
 	zzbBadCanvas = zzbBadCanvas || (zzCanvas.Class != Class'Canvas');
 
-	zzLastVR = zzViewRotation;
+	zzLastVR = ViewRotation;
 
 	if (Role < ROLE_Authority)
 		xxAttachConsole();
@@ -1909,8 +1538,6 @@ event PostRender( canvas zzCanvas )
 			ViewRotation.Roll = 0;
 			EyeHeight = zzRepVREye;
 		}
-		else
-			ViewRotation = zzViewRotation;
 
 		if ( zzmyHUD != None )
 		{
@@ -1981,7 +1608,7 @@ event PostRender( canvas zzCanvas )
 		}
 	}
 
-	zzbVRChanged = zzbVRChanged || (zzViewRotation != zzLastVR);
+	zzbVRChanged = zzbVRChanged || (ViewRotation != zzLastVR);
 }
 
 exec simulated Function TellConsole()
@@ -2410,10 +2037,7 @@ simulated function xxDrawLogo(canvas zzC, float zzX, float zzY, float zzFadeValu
 	}
 	else
 	{
-		if (!zzbDidMD5)
-			zzC.DrawText("Validating...");
-		else
-			zzC.DrawText("Type 'PureHelp' into console for extra Pure commands!");
+		zzC.DrawText("Type 'PureHelp' into console for extra Pure commands!");
 		zzC.DrawColor = ChallengeHud(MyHud).WhiteColor * zzFadeValue;
 		zzC.SetPos(zzX,zzY);
 		zzC.DrawIcon(texture'PUREShield',1.0);
@@ -2435,9 +2059,6 @@ simulated function xxRenderLogo(canvas zzC)
 
 	if (zzbLogoDone)
 		return;
-
-	if (!zzbDidMD5)
-		zzLogoStart = Level.TimeSeconds;
 
 	zzTimeUsed = Level.TimeSeconds - zzLogoStart;
 	if (zzTimeUsed > 5.0)
